@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🌟 Portfolio – Hilla Prince Bambé
 **Django Backend + React Frontend | Trilingue FR / EN / AR**
 
@@ -176,3 +177,7 @@ gunicorn portfolio.wsgi:application --bind 0.0.0.0:8000
 ---
 
 *© 2025 Hilla Prince Bambé – KICEKO CONSULTANT, N'Djamena, Tchad*
+=======
+# hp
+portfolio
+>>>>>>> 910a0a2fa587c28cbb4f00e70ede2b6ccf42c066
