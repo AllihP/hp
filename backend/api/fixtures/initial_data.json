@@ -1,0 +1,274 @@
+[
+  {
+    "model": "api.profile",
+    "pk": 1,
+    "fields": {
+      "name_fr": "Hilla Prince Bambé",
+      "name_en": "Hilla Prince Bambé",
+      "name_ar": "هيلا برانس بامبي",
+      "title_fr": "Ingénieur des Technologies d'Information",
+      "title_en": "Information Technology Engineer",
+      "title_ar": "مهندس تكنولوجيا المعلومات",
+      "bio_fr": "Directeur Technique chez KICEKO CONSULTANT. Jeune ambitieux, je serai un excellent atout pour votre institution notamment dans la gestion de vos projets. Je serai un pont entre vos différentes équipes et le client.",
+      "bio_en": "Technical Director at KICEKO CONSULTANT. Young and ambitious, I will be a great asset to your institution, particularly in managing your projects. I will serve as a bridge between your various teams and the client.",
+      "bio_ar": "المدير التقني في شركة كيسيكو للاستشارات. شاب طموح، سأكون أصلاً ممتازاً لمؤسستكم، لا سيما في إدارة مشاريعكم. سأكون جسراً بين فرقكم المختلفة والعميل.",
+      "email": "hillaprincebambe@gmail.com",
+      "phone": "+235 60 92 87 48",
+      "linkedin": "",
+      "github": "",
+      "instagram": "https://www.instagram.com/prince_allih/",
+      "facebook": "https://www.facebook.com/prince.sirius/",
+      "twitter": ""
+    }
+  },
+  {
+    "model": "api.skill",
+    "pk": 1,
+    "fields": {"name_fr": "UI et UX Design", "name_en": "UI & UX Design", "name_ar": "تصميم واجهة المستخدم", "percentage": 95, "order": 1, "icon": "fa-pen-ruler"}
+  },
+  {
+    "model": "api.skill",
+    "pk": 2,
+    "fields": {"name_fr": "Conception Système", "name_en": "System Design", "name_ar": "تصميم الأنظمة", "percentage": 98, "order": 2, "icon": "fa-diagram-project"}
+  },
+  {
+    "model": "api.skill",
+    "pk": 3,
+    "fields": {"name_fr": "Méthodes Agiles", "name_en": "Agile Methods", "name_ar": "المنهجيات الرشيقة", "percentage": 70, "order": 3, "icon": "fa-arrows-spin"}
+  },
+  {
+    "model": "api.skill",
+    "pk": 4,
+    "fields": {"name_fr": "Développement Web", "name_en": "Web Development", "name_ar": "تطوير الويب", "percentage": 85, "order": 4, "icon": "fa-code"}
+  },
+  {
+    "model": "api.skill",
+    "pk": 5,
+    "fields": {"name_fr": "Infrastructure GIS", "name_en": "GIS Infrastructure", "name_ar": "البنية التحتية للمعلومات الجغرافية", "percentage": 90, "order": 5, "icon": "fa-map"}
+  },
+  {
+    "model": "api.skill",
+    "pk": 6,
+    "fields": {"name_fr": "DevOps & Cloud", "name_en": "DevOps & Cloud", "name_ar": "ديف أوبس والسحابة", "percentage": 75, "order": 6, "icon": "fa-cloud"}
+  },
+  {
+    "model": "api.education",
+    "pk": 1,
+    "fields": {
+      "title_fr": "Master en Technologies de l'Information",
+      "title_en": "Master in Information Technology",
+      "title_ar": "ماجستير في تكنولوجيا المعلومات",
+      "institution_fr": "SupMTI - Rabat, Maroc",
+      "institution_en": "SupMTI - Rabat, Morocco",
+      "institution_ar": "سوب إم تي آي - الرباط، المغرب",
+      "year": "2018-2020",
+      "description_fr": "Diplôme d'ingénieur en Technologies de l'Information, spécialisation en systèmes d'information et géomatique.",
+      "description_en": "Engineering degree in Information Technology, specialization in information systems and geomatics.",
+      "description_ar": "درجة الهندسة في تكنولوجيا المعلومات، تخصص في نظم المعلومات والجيوماتيك.",
+      "order": 1
+    }
+  },
+  {
+    "model": "api.education",
+    "pk": 2,
+    "fields": {
+      "title_fr": "Certificat en Maintenance PC",
+      "title_en": "Certificate in PC Maintenance",
+      "title_ar": "شهادة في صيانة الحاسوب",
+      "institution_fr": "Centre de Formation Informatique",
+      "institution_en": "IT Training Center",
+      "institution_ar": "مركز التدريب على تكنولوجيا المعلومات",
+      "year": "2016",
+      "description_fr": "Certification en maintenance et réparation de matériel informatique.",
+      "description_en": "Certification in computer hardware maintenance and repair.",
+      "description_ar": "شهادة في صيانة وإصلاح أجهزة الحاسوب.",
+      "order": 2
+    }
+  },
+  {
+    "model": "api.education",
+    "pk": 3,
+    "fields": {
+      "title_fr": "Baccalauréat Scientifique",
+      "title_en": "Scientific High School Diploma",
+      "title_ar": "البكالوريا العلمية",
+      "institution_fr": "Lycée National de N'Djamena",
+      "institution_en": "National High School of N'Djamena",
+      "institution_ar": "الثانوية الوطنية بنجامينا",
+      "year": "2014",
+      "description_fr": "Obtention du baccalauréat série scientifique.",
+      "description_en": "Obtained the scientific baccalaureate series.",
+      "description_ar": "الحصول على شهادة البكالوريا العلمية.",
+      "order": 3
+    }
+  },
+  {
+    "model": "api.experience",
+    "pk": 1,
+    "fields": {
+      "title_fr": "Directeur Technique",
+      "title_en": "Technical Director",
+      "title_ar": "المدير التقني",
+      "company_fr": "KICEKO CONSULTANT - N'Djamena",
+      "company_en": "KICEKO CONSULTANT - N'Djamena",
+      "company_ar": "كيسيكو للاستشارات - نجامينا",
+      "period": "2022 - Présent",
+      "description_fr": "Direction technique d'une firme de conseil IT et géomatique. Gestion de projets avec Banque Mondiale, PNUD, ANLA, LWF, OXFAM, NIRAS.",
+      "description_en": "Technical direction of an IT and geomatics consulting firm. Project management with World Bank, UNDP, ANLA, LWF, OXFAM, NIRAS.",
+      "description_ar": "الإدارة التقنية لشركة استشارات تكنولوجيا المعلومات والجيوماتيك. إدارة مشاريع مع البنك الدولي واليونامي.",
+      "order": 1
+    }
+  },
+  {
+    "model": "api.experience",
+    "pk": 2,
+    "fields": {
+      "title_fr": "Ingénieur Systèmes d'Information",
+      "title_en": "Information Systems Engineer",
+      "title_ar": "مهندس نظم المعلومات",
+      "company_fr": "Programme National Santé Numérique (PNSN)",
+      "company_en": "National Digital Health Program (PNSN)",
+      "company_ar": "البرنامج الوطني للصحة الرقمية",
+      "period": "2020 - 2022",
+      "description_fr": "Gestion de plateformes pour 500+ utilisateurs. Coordination avec ministères et partenaires internationaux (BM, PNUD, UNICEF).",
+      "description_en": "Platform management for 500+ users. Coordination with ministries and international partners (WB, UNDP, UNICEF).",
+      "description_ar": "إدارة المنصات لأكثر من 500 مستخدم. التنسيق مع الوزارات والشركاء الدوليين.",
+      "order": 2
+    }
+  },
+  {
+    "model": "api.certification",
+    "pk": 1,
+    "fields": {
+      "title_fr": "AWS Cloud Practitioner",
+      "title_en": "AWS Cloud Practitioner",
+      "title_ar": "شهادة AWS السحابية",
+      "issuer": "Amazon Web Services",
+      "year": "2023",
+      "icon": "fa-aws",
+      "order": 1
+    }
+  },
+  {
+    "model": "api.certification",
+    "pk": 2,
+    "fields": {
+      "title_fr": "Professional Scrum Master",
+      "title_en": "Professional Scrum Master",
+      "title_ar": "سكروم ماستر المحترف",
+      "issuer": "Scrum.org",
+      "year": "2022",
+      "icon": "fa-certificate",
+      "order": 2
+    }
+  },
+  {
+    "model": "api.certification",
+    "pk": 3,
+    "fields": {
+      "title_fr": "GIS Professional",
+      "title_en": "GIS Professional",
+      "title_ar": "متخصص نظم المعلومات الجغرافية",
+      "issuer": "ESRI / QGIS Foundation",
+      "year": "2021",
+      "icon": "fa-map",
+      "order": 3
+    }
+  },
+  {
+    "model": "api.article",
+    "pk": 1,
+    "fields": {
+      "title_fr": "GitHub Actions : Guide Complet avec Exemples",
+      "title_en": "GitHub Actions: Complete Guide with Examples",
+      "title_ar": "GitHub Actions: دليل شامل مع أمثلة",
+      "summary_fr": "Un guide complet sur GitHub Actions pour automatiser vos workflows CI/CD avec des exemples pratiques.",
+      "summary_en": "A comprehensive guide on GitHub Actions to automate your CI/CD workflows with practical examples.",
+      "summary_ar": "دليل شامل حول GitHub Actions لأتمتة سير عمل CI/CD مع أمثلة عملية.",
+      "icon": "fa-github",
+      "link": "#",
+      "category": "DevOps",
+      "order": 1
+    }
+  },
+  {
+    "model": "api.article",
+    "pk": 2,
+    "fields": {
+      "title_fr": "Red Hat avec GitHub Actions : Guide complet",
+      "title_en": "Red Hat with GitHub Actions: Complete Guide",
+      "title_ar": "Red Hat مع GitHub Actions: دليل كامل",
+      "summary_fr": "Intégration de Red Hat Enterprise Linux dans vos pipelines GitHub Actions.",
+      "summary_en": "Integrating Red Hat Enterprise Linux into your GitHub Actions pipelines.",
+      "summary_ar": "دمج Red Hat Enterprise Linux في مسارات GitHub Actions.",
+      "icon": "fa-hat-cowboy",
+      "link": "#",
+      "category": "Linux",
+      "order": 2
+    }
+  },
+  {
+    "model": "api.article",
+    "pk": 3,
+    "fields": {
+      "title_fr": "GitHub Actions et Azure DevOps : Guide d'intégration",
+      "title_en": "GitHub Actions and Azure DevOps: Integration Guide",
+      "title_ar": "GitHub Actions وAzure DevOps: دليل التكامل",
+      "summary_fr": "Comment intégrer GitHub Actions avec Azure DevOps pour des pipelines hybrides performants.",
+      "summary_en": "How to integrate GitHub Actions with Azure DevOps for powerful hybrid pipelines.",
+      "summary_ar": "كيفية دمج GitHub Actions مع Azure DevOps لإنشاء مسارات هجينة قوية.",
+      "icon": "fa-cloud",
+      "link": "#",
+      "category": "Cloud",
+      "order": 3
+    }
+  },
+  {
+    "model": "api.article",
+    "pk": 4,
+    "fields": {
+      "title_fr": "Infrastructure GIS avec PostGIS et GeoServer",
+      "title_en": "GIS Infrastructure with PostGIS and GeoServer",
+      "title_ar": "البنية التحتية GIS مع PostGIS وGeoServer",
+      "summary_fr": "Mise en place d'une infrastructure GIS complète avec PostGIS, GeoServer et OpenLayers.",
+      "summary_en": "Setting up a complete GIS infrastructure with PostGIS, GeoServer, and OpenLayers.",
+      "summary_ar": "إعداد بنية تحتية GIS كاملة مع PostGIS وGeoServer وOpenLayers.",
+      "icon": "fa-map",
+      "link": "#",
+      "category": "GIS",
+      "order": 4
+    }
+  },
+  {
+    "model": "api.article",
+    "pk": 5,
+    "fields": {
+      "title_fr": "Django REST Framework : API Avancée",
+      "title_en": "Django REST Framework: Advanced API",
+      "title_ar": "Django REST Framework: واجهة برمجة متقدمة",
+      "summary_fr": "Construction d'une API REST robuste et sécurisée avec Django REST Framework.",
+      "summary_en": "Building a robust and secure REST API with Django REST Framework.",
+      "summary_ar": "بناء واجهة برمجة REST قوية وآمنة باستخدام Django REST Framework.",
+      "icon": "fa-server",
+      "link": "#",
+      "category": "Backend",
+      "order": 5
+    }
+  },
+  {
+    "model": "api.article",
+    "pk": 6,
+    "fields": {
+      "title_fr": "Intégration IA avec l'API Anthropic",
+      "title_en": "AI Integration with Anthropic API",
+      "title_ar": "تكامل الذكاء الاصطناعي مع واجهة Anthropic",
+      "summary_fr": "Guide pratique pour intégrer Claude d'Anthropic dans vos applications Python et Django.",
+      "summary_en": "Practical guide to integrating Anthropic's Claude into your Python and Django applications.",
+      "summary_ar": "دليل عملي لدمج Claude من Anthropic في تطبيقات Python وDjango.",
+      "icon": "fa-robot",
+      "link": "#",
+      "category": "AI",
+      "order": 6
+    }
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "nav": {
+    "home": "ACCUEIL",
+    "about": "ME CONCERNANT",
+    "cv": "CURRICULUM VITAE",
+    "articles": "MES ARTICLES"
+  },
+  "hero": {
+    "greeting": "SALUT",
+    "iam": "Je suis",
+    "name": "Hilla Prince BAMBÉ",
+    "roles": ["Analyste & Concepteur", "Project Manager", "Ingénieur DevOps", "Développeur Full-Stack", "Spécialiste GIS", "Designer UI/UX"]
+  },
+  "about": {
+    "title": "Me Concernant",
+    "hire": "RECRUTEZ-MOI",
+    "skills_title": "Mes Compétences"
+  },
+  "cv": {
+    "title": "Curriculum Vitae",
+    "education": "Formation",
+    "experience": "Expériences",
+    "certifications": "Certifications",
+    "download": "Télécharger CV"
+  },
+  "articles": {
+    "title": "Mes Articles",
+    "read_more": "Lire plus",
+    "category": "Catégorie"
+  },
+  "contact": {
+    "title": "Contactez-moi",
+    "name": "Nom complet",
+    "email": "Adresse email",
+    "subject": "Sujet",
+    "message": "Message",
+    "send": "Envoyer le message",
+    "success": "Message envoyé avec succès!",
+    "error": "Erreur lors de l'envoi."
+  },
+  "footer": {
+    "contact": "Contactez-moi",
+    "links": "Liens rapides",
+    "follow": "Suivez-moi",
+    "rights": "Tous droits réservés.",
+    "phone": "Téléphone"
+  },
+  "lang": {
+    "fr": "FR",
+    "en": "EN",
+    "ar": "AR"
+  }
+}
