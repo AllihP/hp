@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 
 const LangContext = createContext()
 
@@ -14,6 +15,8 @@ export function LangProvider({ children }) {
     localStorage.setItem('language', newLang)
     document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr'
     document.documentElement.lang = newLang
+    // Retour à l'accueil + scroll en haut
+    window.location.href = '/'
   }
 
   useEffect(() => {

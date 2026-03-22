@@ -1,335 +1,338 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useLang } from '../context/LangContext'
-import { getField } from '../hooks/useApi'
-import { ARTICLES_CONTENT } from '../data/articlesContent'
+import axios from 'axios'
 import './ArticleDetail.css'
 
-const ICON_MAP = {
-  'fa-github': 'fab fa-github', 'fa-hat-cowboy': 'fas fa-hat-cowboy',
-  'fa-cloud': 'fas fa-cloud', 'fa-map': 'fas fa-map',
-  'fa-server': 'fas fa-server', 'fa-robot': 'fas fa-robot',
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+
+const ICONS = {
+  'fa-github':     'fab fa-github',
+  'fa-hat-cowboy': 'fas fa-hat-cowboy',
+  'fa-cloud':      'fas fa-cloud',
+  'fa-map':        'fas fa-map',
+  'fa-server':     'fas fa-server',
+  'fa-robot':      'fas fa-robot',
 }
 
-// Markdown-like renderer
-function renderText(text) {
-  if (!text) return null
-  return text.split('\n').map((line, i) => {
-    // Bold
-    const parts = line.split(/\*\*(.*?)\*\*/g)
-    const rendered = parts.map((p, j) =>
-      j % 2 === 1 ? <strong key={j}>{p}</strong> : p
-    )
-    if (!line.trim()) return <br key={i} />
-    if (line.startsWith('- ')) return (
-      <li key={i}>{renderInline(line.slice(2))}</li>
-    )
-    return <span key={i}>{rendered}<br /></span>
+/* ── Calcul du temps de lecture ──────────────────────────── */
+function readTime(html) {
+  const words = (html || '').replace(/<[^>]+>/g, ' ').trim().split(/\s+/).filter(Boolean).length
+  return Math.max(1, Math.round(words / 200))
+}
+
+/* ── Inject IDs + data-num on h2 ─────────────────────────── */
+function prepareHtml(html) {
+  if (!html) return { html: '', toc: [] }
+  const toc = []
+  let n = 0
+  const out = html.replace(/<h2([^>]*)>([\s\S]*?)<\/h2>/gi, (_, attrs, inner) => {
+    n++
+    const text = inner.replace(/<[^>]+>/g, '').trim()
+    const id   = `s${n}`
+    toc.push({ id, num: n, text })
+    return `<h2${attrs} id="${id}" data-num="${n}">${inner}</h2>`
   })
+  return { html: out, toc }
 }
 
-function renderInline(text) {
-  const parts = text.split(/\*\*(.*?)\*\*/g)
-  return parts.map((p, i) => i % 2 === 1 ? <strong key={i}>{p}</strong> : p)
-}
+/* ══ Sommaire ════════════════════════════════════════════════ */
+function TOC({ toc, lang }) {
+  const [active, setActive] = useState(0)
 
-// Section renderers
-function SectionHeading({ section }) {
+  useEffect(() => {
+    if (!toc.length) return
+    const fn = () => {
+      let cur = 0
+      toc.forEach((s, i) => {
+        const el = document.getElementById(s.id)
+        if (el && window.scrollY + 160 >= el.offsetTop) cur = i
+      })
+      setActive(cur)
+    }
+    window.addEventListener('scroll', fn, { passive: true })
+    fn()
+    return () => window.removeEventListener('scroll', fn)
+  }, [toc])
+
+  if (toc.length < 2) return null
+
+  const label = { fr: 'Sommaire', en: 'Contents', ar: 'المحتويات' }[lang]
+
   return (
-    <div className="art-section art-section--heading">
-      <h2 className="art-h2">{section.title}</h2>
-      <div className="art-prose">
-        {section.content?.split('\n').some(l => l.startsWith('- '))
-          ? <ul className="art-list">{renderText(section.content)}</ul>
-          : <p>{renderText(section.content)}</p>
-        }
-      </div>
-    </div>
-  )
-}
-
-function SectionCode({ section }) {
-  const [copied, setCopied] = useState(false)
-  const copy = () => {
-    navigator.clipboard.writeText(section.code || '')
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-  return (
-    <div className="art-section art-section--code">
-      {section.title && <h3 className="art-h3">{section.title}</h3>}
-      <div className="code-block">
-        <div className="code-header">
-          <div className="code-dots">
-            <span className="dot dot--red" />
-            <span className="dot dot--yellow" />
-            <span className="dot dot--green" />
-          </div>
-          <span className="code-lang">{section.lang || 'code'}</span>
-          <button className="code-copy" onClick={copy}>
-            <i className={`fas ${copied ? 'fa-check' : 'fa-copy'}`} />
-            {copied ? 'Copié!' : 'Copier'}
-          </button>
-        </div>
-        <pre className="code-body"><code>{section.code}</code></pre>
-      </div>
-    </div>
-  )
-}
-
-function SectionTip({ section }) {
-  return (
-    <div className="art-section art-section--tip">
-      <div className="callout callout--tip">
-        <div className="callout-icon"><i className="fas fa-lightbulb" /></div>
-        <p>{renderText(section.content)}</p>
-      </div>
-    </div>
-  )
-}
-
-function SectionWarning({ section }) {
-  return (
-    <div className="art-section art-section--warning">
-      <div className="callout callout--warning">
-        <div className="callout-icon"><i className="fas fa-triangle-exclamation" /></div>
-        <p>{renderText(section.content)}</p>
-      </div>
-    </div>
-  )
-}
-
-function SectionConclusion({ section }) {
-  return (
-    <div className="art-section art-section--conclusion">
-      <div className="conclusion-block">
-        <div className="conclusion-icon"><i className="fas fa-flag-checkered" /></div>
-        <h3>{section.title}</h3>
-        <p>{renderText(section.content)}</p>
-      </div>
-    </div>
-  )
-}
-
-function renderSection(section, i) {
-  switch (section.type) {
-    case 'heading': return <SectionHeading key={i} section={section} />
-    case 'code': return <SectionCode key={i} section={section} />
-    case 'tip': return <SectionTip key={i} section={section} />
-    case 'warning': return <SectionWarning key={i} section={section} />
-    case 'conclusion': return <SectionConclusion key={i} section={section} />
-    default: return null
-  }
-}
-
-// Table of Contents
-function TOC({ sections, activeIdx }) {
-  const headings = sections.filter(s => s.type === 'heading' || s.type === 'conclusion')
-  if (headings.length < 2) return null
-  return (
-    <nav className="art-toc">
-      <p className="toc-title"><i className="fas fa-list" /> Sommaire</p>
-      <ul>
-        {headings.map((s, i) => (
-          <li key={i} className={activeIdx === i ? 'active' : ''}>
-            <a href={`#section-${i}`} onClick={e => {
+    <div className="ar-toc">
+      <div className="ar-toc-head"><i className="fas fa-list-ol" /> {label}</div>
+      <ol>
+        {toc.map((s, i) => (
+          <li key={s.id} className={active === i ? 'on' : ''}>
+            <a href={`#${s.id}`} onClick={e => {
               e.preventDefault()
-              document.getElementById(`section-${i}`)?.scrollIntoView({ behavior: 'smooth' })
+              document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
             }}>
-              {s.title?.replace(/[🔧📄⏰🚀🔐🔄☁️📦🏗️🐘📥🌐🤖⚡🗺️🎩🎯]/u, '').trim()}
+              <span className="ar-toc-n">{s.num}</span>
+              <span className="ar-toc-t">{s.text}</span>
             </a>
           </li>
         ))}
-      </ul>
-    </nav>
+      </ol>
+    </div>
   )
 }
 
-export default function ArticleDetail({ articles }) {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const { lang, isRTL } = useLang()
-  const [progress, setProgress] = useState(0)
-  const [activeIdx, setActiveIdx] = useState(0)
-  const [showScrollTop, setShowScrollTop] = useState(false)
-  const articleRef = useRef(null)
-
-  const article = (articles || []).find(a => String(a.id) === String(id))
-
-  // Reading progress bar
+/* ══ Barre de progression ════════════════════════════════════ */
+function ProgressBar({ ref }) {
+  const [w, setW] = useState(0)
   useEffect(() => {
-    const onScroll = () => {
-      const el = articleRef.current
+    const fn = () => {
+      const el = ref.current
       if (!el) return
       const { top, height } = el.getBoundingClientRect()
-      const winH = window.innerHeight
-      const scrolled = Math.max(0, Math.min(1, (-top) / (height - winH)))
-      setProgress(scrolled * 100)
-      setShowScrollTop(window.scrollY > 400)
+      setW(Math.min(100, Math.max(0, (-top / (height - window.innerHeight)) * 100)))
     }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    window.addEventListener('scroll', fn, { passive: true })
+    return () => window.removeEventListener('scroll', fn)
+  }, [])
+  return <div className="ar-progress"><div className="ar-progress-fill" style={{ width: `${w}%` }} /></div>
+}
+
+/* ══ Copier lien ═════════════════════════════════════════════ */
+function CopyBtn({ lang }) {
+  const [ok, setOk] = useState(false)
+  const label = ok
+    ? { fr: 'Copié !', en: 'Copied!', ar: 'تم!' }[lang]
+    : { fr: 'Copier', en: 'Copy',    ar: 'نسخ'  }[lang]
+  return (
+    <button className={`ar-share-btn ${ok ? 'ok' : ''}`} onClick={() => {
+      navigator.clipboard.writeText(window.location.href)
+      setOk(true); setTimeout(() => setOk(false), 2500)
+    }}>
+      <i className={`fas ${ok ? 'fa-check' : 'fa-link'}`} /> {label}
+    </button>
+  )
+}
+
+/* ══ COMPOSANT PRINCIPAL ═════════════════════════════════════ */
+export default function ArticleDetail() {
+  const { id }          = useParams()
+  const navigate        = useNavigate()
+  const { lang, isRTL } = useLang()
+  const [state, setState] = useState({ status: 'loading', article: null, related: [] })
+  const [showTop, setShowTop] = useState(false)
+  const bodyRef = useRef(null)
+
+  /* Charger l'article + la liste */
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    setState({ status: 'loading', article: null, related: [] })
+
+    const load = async () => {
+      try {
+        const res = await axios.get(`${API_BASE}/articles/`)
+        const all = res.data
+        const art = all.find(a => String(a.id) === String(id))
+        if (!art) { setState({ status: 'notfound', article: null, related: [] }); return }
+        const rel = all.filter(a => a.category === art.category && String(a.id) !== String(id)).slice(0, 3)
+        setState({ status: 'ok', article: art, related: rel })
+      } catch {
+        setState({ status: 'error', article: null, related: [] })
+      }
+    }
+    load()
+  }, [id])
+
+  useEffect(() => {
+    const fn = () => setShowTop(window.scrollY > 600)
+    window.addEventListener('scroll', fn, { passive: true })
+    return () => window.removeEventListener('scroll', fn)
   }, [])
 
-  // Scroll to top on mount
-  useEffect(() => { window.scrollTo(0, 0) }, [id])
+  const { status, article, related } = state
 
-  if (!article) {
-    return (
-      <div className="art-notfound">
-        <i className="fas fa-file-circle-xmark" />
-        <h2>Article introuvable</h2>
-        <Link to="/articles" className="btn-gold">← Retour aux articles</Link>
-      </div>
-    )
+  /* ── Labels ─────────────────────────────────────────────── */
+  const L = {
+    back:    { fr: '← Mes articles',    en: '← My articles',      ar: '← مقالاتي' }[lang],
+    readU:   { fr: 'min de lecture',    en: 'min read',             ar: 'دقيقة قراءة' }[lang],
+    by:      { fr: 'Rédigé par',        en: 'Written by',           ar: 'بقلم' }[lang],
+    role:    { fr: 'Directeur Technique · KICEKO CONSULTANT',
+               en: 'Technical Director · KICEKO CONSULTANT',
+               ar: 'المدير التقني · كيسيكو للاستشارات' }[lang],
+    share:   { fr: 'Partager',          en: 'Share',                ar: 'مشاركة' }[lang],
+    similar: { fr: 'Articles similaires', en: 'Related articles',   ar: 'مقالات ذات صلة' }[lang],
+    readBtn: { fr: 'Lire →',            en: 'Read →',               ar: '← اقرأ' }[lang],
+    noContent:{fr: "Contenu non encore rédigé. Allez dans l'admin Django pour écrire cet article.",
+               en: "No content yet. Go to Django admin to write this article.",
+               ar: "لا يوجد محتوى بعد. اذهب إلى لوحة الإدارة لكتابة المقال." }[lang],
   }
 
-  const title = getField(article, lang, 'title')
-  const summary = getField(article, lang, 'summary')
-  const iconClass = ICON_MAP[article.icon] || `fas ${article.icon}`
-  const content = ARTICLES_CONTENT[article.id]?.[lang] || ARTICLES_CONTENT[article.id]?.fr
-  const { readTime, intro, sections = [] } = content || {}
+  /* ── États de chargement ─────────────────────────────────── */
+  if (status === 'loading') return (
+    <div className="ar-state">
+      <div className="ar-spinner" />
+      <p>Chargement de l'article…</p>
+    </div>
+  )
 
-  // Related articles (same category, different id)
-  const related = (articles || []).filter(a => a.category === article.category && String(a.id) !== String(id)).slice(0, 3)
+  if (status === 'error') return (
+    <div className="ar-state">
+      <i className="fas fa-wifi" style={{ fontSize: '3rem', color: 'rgba(248,113,113,.4)' }} />
+      <h2 style={{ color: 'rgba(255,255,255,.6)' }}>
+        Impossible de charger l'article
+      </h2>
+      <p style={{ color: 'var(--gray)', fontSize: '.9rem', maxWidth: 400, textAlign: 'center' }}>
+        Assurez-vous que le backend Django tourne sur <code>localhost:8000</code>
+      </p>
+      <button className="btn-gold" onClick={() => navigate('/articles')}>
+        <i className="fas fa-arrow-left" /> {L.back}
+      </button>
+    </div>
+  )
+
+  if (status === 'notfound') return (
+    <div className="ar-state">
+      <i className="fas fa-newspaper" style={{ fontSize: '3.5rem', color: 'rgba(245,197,24,.2)' }} />
+      <h2 style={{ color: 'rgba(255,255,255,.55)' }}>Article introuvable</h2>
+      <button className="btn-gold" onClick={() => navigate('/articles')}>
+        <i className="fas fa-arrow-left" /> {L.back}
+      </button>
+    </div>
+  )
+
+  /* ── Données ─────────────────────────────────────────────── */
+  const title   = article[`title_${lang}`]   || article.title_fr   || ''
+  const summary = article[`summary_${lang}`] || article.summary_fr || ''
+  const rawHtml = article[`content_${lang}`] || article.content_fr || ''
+  const { html, toc } = prepareHtml(rawHtml)
+  const icon    = ICONS[article.icon] || `fas ${article.icon}`
+  const rt      = article.read_time || readTime(rawHtml)
 
   return (
-    <div className={`art-page ${isRTL ? 'rtl' : ''}`} ref={articleRef}>
-      {/* Reading progress bar */}
-      <div className="art-progress-bar">
-        <div className="art-progress-fill" style={{ width: `${progress}%` }} />
-      </div>
+    <div className={`ar-page ${isRTL ? 'rtl' : ''}`}>
 
-      {/* Hero */}
-      <header className="art-hero">
-        <div className="art-hero__overlay" />
-        <div className="art-hero__content">
-          <Link to="/articles" className="art-back">
-            <i className="fas fa-arrow-left" />
-            {lang === 'ar' ? 'العودة إلى المقالات' : lang === 'en' ? 'Back to Articles' : 'Retour aux articles'}
-          </Link>
+      {/* Barre de progression */}
+      <ProgressBar ref={bodyRef} />
 
-          <div className="art-hero__meta">
-            <span className="art-cat">
-              <i className={iconClass} />
-              {article.category}
-            </span>
-            <span className="art-dot" />
-            <span className="art-time">
-              <i className="fas fa-clock" /> {readTime || '10 min'}
-            </span>
-          </div>
-
-          <h1 className="art-hero__title">{title}</h1>
-          <p className="art-hero__summary">{summary}</p>
-
-          <div className="art-hero__author">
-            <div className="art-author-avatar">
-              <i className="fas fa-user" />
-            </div>
-            <div>
-              <span className="art-author-name">Hilla Prince Bambé</span>
-              <span className="art-author-role">
-                {lang === 'ar' ? 'المدير التقني — كيسيكو للاستشارات'
-                : lang === 'en' ? 'Technical Director — KICEKO CONSULTANT'
-                : 'Directeur Technique — KICEKO CONSULTANT'}
-              </span>
-            </div>
-          </div>
+      {/* ════ HERO ═══════════════════════════════════════════ */}
+      <header className="ar-hero">
+        <div className="ar-hero-glow" />
+        <div className="ar-hero-hex" aria-hidden>
+          <span /><span /><span />
         </div>
 
-        {/* Hexagon deco */}
-        <div className="art-hero__hex" aria-hidden>
-          <div className="ahex ahex--1" />
-          <div className="ahex ahex--2" />
-          <div className="ahex ahex--3" />
+        <div className="ar-hero-inner">
+          <button className="ar-back" onClick={() => navigate('/articles')}>
+            {L.back}
+          </button>
+
+          {/* Badges méta */}
+          <div className="ar-badges">
+            <span className="ar-badge-cat"><i className={icon} /> {article.category}</span>
+            <span className="ar-badge-dot" />
+            <span className="ar-badge-time"><i className="fas fa-clock" /> {rt} {L.readU}</span>
+            {article.published_date && (
+              <>
+                <span className="ar-badge-dot" />
+                <span className="ar-badge-date"><i className="fas fa-calendar" /> {article.published_date}</span>
+              </>
+            )}
+          </div>
+
+          {/* Grand titre */}
+          <h1 className="ar-title">{title}</h1>
+
+          {/* Chapeau */}
+          {summary && <p className="ar-lead">{summary}</p>}
+
+          {/* Auteur */}
+          <div className="ar-author-row">
+            <div className="ar-avatar">HPB</div>
+            <div>
+              <span className="ar-author-name">{L.by} <strong>Hilla Prince Bambé</strong></span>
+              <span className="ar-author-role">{L.role}</span>
+            </div>
+          </div>
+
+          {/* Partage */}
+          <div className="ar-share">
+            <span>{L.share} :</span>
+            <a className="ar-share-btn tw"
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(window.location.href)}`}
+              target="_blank" rel="noreferrer">
+              <i className="fab fa-twitter" /> Twitter
+            </a>
+            <a className="ar-share-btn li"
+              href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`}
+              target="_blank" rel="noreferrer">
+              <i className="fab fa-linkedin-in" /> LinkedIn
+            </a>
+            <CopyBtn lang={lang} />
+          </div>
         </div>
       </header>
 
-      {/* Body */}
-      <div className="art-body">
-        {/* Sticky TOC */}
-        <aside className="art-sidebar">
-          <TOC sections={sections} activeIdx={activeIdx} />
-          {/* Share */}
-          <div className="art-share">
-            <p className="share-title">
-              {lang === 'ar' ? 'مشاركة' : lang === 'en' ? 'Share' : 'Partager'}
-            </p>
-            <div className="share-btns">
-              <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}`}
-                target="_blank" rel="noreferrer" className="share-btn share-btn--twitter">
-                <i className="fab fa-twitter" />
-              </a>
-              <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`}
-                target="_blank" rel="noreferrer" className="share-btn share-btn--linkedin">
-                <i className="fab fa-linkedin-in" />
-              </a>
-              <button className="share-btn share-btn--copy" onClick={() => navigator.clipboard.writeText(window.location.href)}>
-                <i className="fas fa-link" />
-              </button>
+      {/* ════ CORPS ══════════════════════════════════════════ */}
+      <div className="ar-body" ref={bodyRef}>
+
+        {/* Sommaire sticky */}
+        <aside className="ar-sidebar">
+          <TOC toc={toc} lang={lang} />
+
+          {/* Info auteur */}
+          <div className="ar-author-card">
+            <div className="ar-author-card-avatar">HPB</div>
+            <div>
+              <strong>Hilla Prince Bambé</strong>
+              <span>KICEKO CONSULTANT</span>
+              <span>N'Djamena, Tchad</span>
             </div>
           </div>
         </aside>
 
-        {/* Main article content */}
-        <article className="art-content">
-          {/* Lead paragraph */}
-          {intro && (
-            <p className="art-intro">{intro}</p>
-          )}
-
-          {/* Sections */}
-          {sections.map((s, i) => (
-            <div key={i} id={`section-${i}`}>
-              {renderSection(s, i)}
+        {/* Article */}
+        <main className="ar-main">
+          {html ? (
+            <article className="ar-content" dangerouslySetInnerHTML={{ __html: html }} />
+          ) : (
+            <div className="ar-empty">
+              <i className="fas fa-pen-nib" />
+              <p>{L.noContent}</p>
+              <a href={`http://localhost:8000/admin/api/article/${id}/change/`}
+                target="_blank" rel="noreferrer" className="btn-gold">
+                <i className="fas fa-edit" /> Rédiger dans l'admin
+              </a>
             </div>
-          ))}
-
-          {/* Tags */}
-          <div className="art-tags">
-            <span className="art-tag">{article.category}</span>
-            <span className="art-tag">DevOps</span>
-            <span className="art-tag">KICEKO</span>
-            <span className="art-tag">Tchad</span>
-          </div>
-        </article>
+          )}
+        </main>
       </div>
 
-      {/* Related articles */}
+      {/* ════ ARTICLES SIMILAIRES ════════════════════════════ */}
       {related.length > 0 && (
-        <section className="art-related">
-          <div className="art-related__inner">
-            <h2 className="art-related__title">
-              {lang === 'ar' ? 'مقالات ذات صلة' : lang === 'en' ? 'Related Articles' : 'Articles similaires'}
-            </h2>
-            <div className="art-related__grid">
-              {related.map(a => (
-                <Link key={a.id} to={`/articles/${a.id}`} className="art-rel-card card">
-                  <div className="arc-icon">
-                    <i className={ICON_MAP[a.icon] || `fas ${a.icon}`} />
+        <section className="ar-related">
+          <div className="ar-related-wrap">
+            <h2>{L.similar}</h2>
+            <div className="ar-related-grid">
+              {related.map(a => {
+                const t = a[`title_${lang}`]   || a.title_fr   || ''
+                const s = a[`summary_${lang}`] || a.summary_fr || ''
+                const ic = ICONS[a.icon] || `fas ${a.icon}`
+                return (
+                  <div key={a.id} className="ar-rel" onClick={() => navigate(`/articles/${a.id}`)}>
+                    <div className="ar-rel-top">
+                      <div className="ar-rel-icon"><i className={ic} /></div>
+                      <span className="ar-rel-cat">{a.category}</span>
+                    </div>
+                    <h3>{t}</h3>
+                    <p>{s}</p>
+                    <span className="ar-rel-cta">{L.readBtn}</span>
                   </div>
-                  <span className="arc-cat">{a.category}</span>
-                  <h3>{getField(a, lang, 'title')}</h3>
-                  <span className="arc-more">
-                    {lang === 'ar' ? 'اقرأ المزيد' : lang === 'en' ? 'Read more' : 'Lire plus'}
-                    <i className="fas fa-arrow-right" />
-                  </span>
-                </Link>
-              ))}
+                )
+              })}
             </div>
           </div>
         </section>
       )}
 
-      {/* Scroll to top */}
-      {showScrollTop && (
-        <button
-          className="scroll-top"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          aria-label="Scroll to top"
-        >
+      {showTop && (
+        <button className="ar-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <i className="fas fa-chevron-up" />
         </button>
       )}
