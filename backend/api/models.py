@@ -9,16 +9,17 @@ class Profile(models.Model):
     title_fr = models.CharField(max_length=200, default="Ingénieur des Technologies d'Information")
     title_en = models.CharField(max_length=200, default="Information Technology Engineer")
     title_ar = models.CharField(max_length=200, default="مهندس تكنولوجيا المعلومات")
-    bio_fr = models.TextField(default="Jeune ambitieux, je serai un excellent atout pour votre institution notamment dans la gestion de vos projets.")
-    bio_en = models.TextField(default="Young and ambitious, I will be a great asset to your institution, particularly in managing your projects.")
-    bio_ar = models.TextField(default="شاب طموح، سأكون أصلاً ممتازاً لمؤسستكم، لا سيما في إدارة مشاريعكم.")
-    email = models.EmailField(default="hillaprincebambe@gmail.com")
-    phone = models.CharField(max_length=30, default="+235 60 92 87 48")
+    bio_fr = models.TextField(blank=True, default="")
+    bio_en = models.TextField(blank=True, default="")
+    bio_ar = models.TextField(blank=True, default="")
+    email = models.EmailField(blank=True, default="")
+    phone = models.CharField(max_length=30, blank=True, default="")
     linkedin = models.URLField(blank=True, default="")
     github = models.URLField(blank=True, default="")
-    instagram = models.URLField(blank=True, default="https://www.instagram.com/prince_allih/")
-    facebook = models.URLField(blank=True, default="https://www.facebook.com/prince.sirius/")
+    instagram = models.URLField(blank=True, default="")
+    facebook = models.URLField(blank=True, default="")
     twitter = models.URLField(blank=True, default="")
+    avatar = models.ImageField(upload_to='profile/', blank=True, null=True)
 
     class Meta:
         verbose_name = "Profil"
@@ -29,11 +30,11 @@ class Profile(models.Model):
 
 class Skill(models.Model):
     name_fr = models.CharField(max_length=100)
-    name_en = models.CharField(max_length=100)
-    name_ar = models.CharField(max_length=100)
-    percentage = models.IntegerField(default=50)
-    order = models.IntegerField(default=0)
+    name_en = models.CharField(max_length=100, blank=True, default="")
+    name_ar = models.CharField(max_length=100, blank=True, default="")
+    percentage = models.IntegerField(default=0)
     icon = models.CharField(max_length=50, blank=True, default="")
+    order = models.IntegerField(default=0)
 
     class Meta:
         ordering = ['order']
@@ -45,8 +46,8 @@ class Skill(models.Model):
 
 class Education(models.Model):
     title_fr = models.CharField(max_length=200)
-    title_en = models.CharField(max_length=200)
-    title_ar = models.CharField(max_length=200)
+    title_en = models.CharField(max_length=200, blank=True, default="")
+    title_ar = models.CharField(max_length=200, blank=True, default="")
     institution_fr = models.CharField(max_length=200, blank=True, default="")
     institution_en = models.CharField(max_length=200, blank=True, default="")
     institution_ar = models.CharField(max_length=200, blank=True, default="")
@@ -66,8 +67,8 @@ class Education(models.Model):
 
 class Experience(models.Model):
     title_fr = models.CharField(max_length=200)
-    title_en = models.CharField(max_length=200)
-    title_ar = models.CharField(max_length=200)
+    title_en = models.CharField(max_length=200, blank=True, default="")
+    title_ar = models.CharField(max_length=200, blank=True, default="")
     company_fr = models.CharField(max_length=200, blank=True, default="")
     company_en = models.CharField(max_length=200, blank=True, default="")
     company_ar = models.CharField(max_length=200, blank=True, default="")
@@ -87,8 +88,8 @@ class Experience(models.Model):
 
 class Certification(models.Model):
     title_fr = models.CharField(max_length=200)
-    title_en = models.CharField(max_length=200)
-    title_ar = models.CharField(max_length=200)
+    title_en = models.CharField(max_length=200, blank=True, default="")
+    title_ar = models.CharField(max_length=200, blank=True, default="")
     issuer = models.CharField(max_length=200, blank=True, default="")
     year = models.CharField(max_length=20, blank=True, default="")
     icon = models.CharField(max_length=50, blank=True, default="")
@@ -103,37 +104,53 @@ class Certification(models.Model):
 
 
 class Article(models.Model):
-    title_fr = models.CharField(max_length=300)
-    title_en = models.CharField(max_length=300)
-    title_ar = models.CharField(max_length=300)
-    summary_fr = models.TextField(blank=True, default="")
-    summary_en = models.TextField(blank=True, default="")
-    summary_ar = models.TextField(blank=True, default="")
-    content_fr = CKEditor5Field(blank=True, default="", config_name="article")
-    content_en = CKEditor5Field(blank=True, default="", config_name="article")
-    content_ar = CKEditor5Field(blank=True, default="", config_name="article")
-    read_time = models.IntegerField(default=10)
-    icon = models.CharField(max_length=50, default="fa-file-code")
-    link = models.URLField(blank=True, default="#")
-    published_date = models.DateField(null=True, blank=True)
-    category = models.CharField(max_length=100, blank=True, default="DevOps")
-    order = models.IntegerField(default=0)
+    CATEGORIES = [
+        ('DevOps', 'DevOps'), ('Cloud', 'Cloud'), ('GIS', 'GIS'),
+        ('Backend', 'Backend'), ('Linux', 'Linux'), ('AI', 'AI'),
+        ('Data', 'Data'), ('Mobile', 'Mobile'), ('Autre', 'Autre'),
+    ]
+
+    # ── Identité
+    icon          = models.CharField(max_length=50, default="fa-file-code", verbose_name="Icône")
+    category      = models.CharField(max_length=100, choices=CATEGORIES, default="DevOps", verbose_name="Catégorie")
+    read_time     = models.IntegerField(default=10, verbose_name="Temps de lecture (min)")
+    published_date= models.DateField(null=True, blank=True, verbose_name="Date de publication")
+    order         = models.IntegerField(default=0, verbose_name="Ordre")
+    cover_image   = models.ImageField(upload_to='articles/covers/', blank=True, null=True, verbose_name="Image de couverture")
+
+    # ── Titre (3 langues)
+    title_fr = models.CharField(max_length=300, verbose_name="Titre (FR)")
+    title_en = models.CharField(max_length=300, blank=True, default="", verbose_name="Titre (EN)")
+    title_ar = models.CharField(max_length=300, blank=True, default="", verbose_name="Titre (AR)")
+
+    # ── Sous-titre / chapeau (3 langues)
+    subtitle_fr = models.CharField(max_length=500, blank=True, default="", verbose_name="Sous-titre (FR)")
+    subtitle_en = models.CharField(max_length=500, blank=True, default="", verbose_name="Sous-titre (EN)")
+    subtitle_ar = models.CharField(max_length=500, blank=True, default="", verbose_name="Sous-titre (AR)")
+
+    # ── Résumé carte (3 langues)
+    summary_fr = models.TextField(blank=True, default="", verbose_name="Résumé carte (FR)")
+    summary_en = models.TextField(blank=True, default="", verbose_name="Résumé carte (EN)")
+    summary_ar = models.TextField(blank=True, default="", verbose_name="Résumé carte (AR)")
+
+    # ── Contenu complet CKEditor (3 langues)
+    content_fr = CKEditor5Field(blank=True, default="", config_name="article", verbose_name="Contenu complet (FR)")
+    content_en = CKEditor5Field(blank=True, default="", config_name="article", verbose_name="Contenu complet (EN)")
+    content_ar = CKEditor5Field(blank=True, default="", config_name="article", verbose_name="Contenu complet (AR)")
 
     class Meta:
         ordering = ['order', '-published_date']
         verbose_name = "Article"
 
     def __str__(self):
-        return self.title_fr
+        return self.title_fr or f"Article #{self.pk}"
 
 
 class CVProtege(models.Model):
-    """CV protégé par un code secret — un seul enregistrement actif."""
-    fichier   = models.FileField(upload_to='cv/', verbose_name="Fichier CV (PDF)")
-    code      = models.CharField(max_length=50, verbose_name="Code d'accès secret")
-    actif     = models.BooleanField(default=True, verbose_name="Actif")
-    nom_fichier = models.CharField(max_length=100, default="CV_Hilla_Prince_Bambe.pdf",
-                                   verbose_name="Nom du fichier téléchargé")
+    fichier    = models.FileField(upload_to='cv/', verbose_name="Fichier CV (PDF)")
+    code       = models.CharField(max_length=50, verbose_name="Code d'accès")
+    actif      = models.BooleanField(default=True, verbose_name="Actif")
+    nom_fichier= models.CharField(max_length=100, default="CV_Hilla_Prince_Bambe.pdf", verbose_name="Nom téléchargé")
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -144,16 +161,16 @@ class CVProtege(models.Model):
 
 
 class ContactMessage(models.Model):
-    name = models.CharField(max_length=100)
-    email = models.EmailField()
-    subject = models.CharField(max_length=200)
-    message = models.TextField()
+    name       = models.CharField(max_length=100)
+    email      = models.EmailField()
+    subject    = models.CharField(max_length=200)
+    message    = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)
+    is_read    = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-created_at']
         verbose_name = "Message de contact"
 
     def __str__(self):
-        return f"{self.name} - {self.subject}"
+        return f"{self.name} — {self.subject}"
