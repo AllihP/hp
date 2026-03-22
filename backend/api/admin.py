@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Profile, Skill, Education, Experience, Certification, Article, ContactMessage
+from .models import Profile, Skill, Education, Experience, Certification, Article, ContactMessage, CVProtege
 
 admin.site.site_header = "Portfolio HPB"
 admin.site.site_title  = "Portfolio HPB"
@@ -157,6 +157,36 @@ class ArticleAdmin(admin.ModelAdmin):
     class Media:
         css = {'all': ['admin/css/hpb_admin.css']}
         js  = ['admin/js/hpb_admin.js']
+
+
+@admin.register(CVProtege)
+class CVProtegeAdmin(admin.ModelAdmin):
+    list_display  = ['nom_fichier', 'code_masque', 'actif', 'updated_at']
+    list_editable = ['actif']
+    fieldsets = [
+        ('Fichier CV', {
+            'fields': ['fichier', 'nom_fichier'],
+            'description': 'Uploadez votre CV au format PDF.',
+        }),
+        ('Protection', {
+            'fields': ['code', 'actif'],
+            'description': (
+                'Le code est transmis au recruteur. '
+                'Il doit entrer ce code pour télécharger le CV. '
+                'Désactivez pour bloquer tous les téléchargements.'
+            ),
+        }),
+    ]
+
+    def code_masque(self, obj):
+        code = obj.code or ''
+        visible = code[:2] if len(code) >= 2 else code
+        masque  = '●' * max(0, len(code) - 2)
+        return format_html(
+            '<span style="font-family:monospace;letter-spacing:.08em;color:var(--gold,#f5c518)">'
+            '{}{}</span>', visible, masque
+        )
+    code_masque.short_description = 'Code (masqué)'
 
 
 # ── ContactMessage ─────────────────────────────────────────────

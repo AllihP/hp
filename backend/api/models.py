@@ -1,4 +1,5 @@
 from django.db import models
+from django_ckeditor_5.fields import CKEditor5Field
 
 
 class Profile(models.Model):
@@ -108,6 +109,10 @@ class Article(models.Model):
     summary_fr = models.TextField(blank=True, default="")
     summary_en = models.TextField(blank=True, default="")
     summary_ar = models.TextField(blank=True, default="")
+    content_fr = CKEditor5Field(blank=True, default="", config_name="article")
+    content_en = CKEditor5Field(blank=True, default="", config_name="article")
+    content_ar = CKEditor5Field(blank=True, default="", config_name="article")
+    read_time = models.IntegerField(default=10)
     icon = models.CharField(max_length=50, default="fa-file-code")
     link = models.URLField(blank=True, default="#")
     published_date = models.DateField(null=True, blank=True)
@@ -120,6 +125,22 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title_fr
+
+
+class CVProtege(models.Model):
+    """CV protégé par un code secret — un seul enregistrement actif."""
+    fichier   = models.FileField(upload_to='cv/', verbose_name="Fichier CV (PDF)")
+    code      = models.CharField(max_length=50, verbose_name="Code d'accès secret")
+    actif     = models.BooleanField(default=True, verbose_name="Actif")
+    nom_fichier = models.CharField(max_length=100, default="CV_Hilla_Prince_Bambe.pdf",
+                                   verbose_name="Nom du fichier téléchargé")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "CV Protégé"
+
+    def __str__(self):
+        return f"CV — code: {self.code}"
 
 
 class ContactMessage(models.Model):
