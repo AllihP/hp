@@ -10,7 +10,7 @@ import Home from './pages/Home'
 import About from './pages/About'
 import CV from './pages/CV'
 import Articles from './pages/Articles'
-import ArticleDetail from './pages/ArticleDetail'
+import ArticlePage from './pages/ArticlePage'
 import './i18n/index'
 import './styles/global.css'
 
@@ -111,7 +111,7 @@ function AppRoutes({ profile, skills, cvData, articles }) {
           <Route path="/about"        element={<About   profile={profile} skills={skills} />} />
           <Route path="/cv"           element={<CV      cvData={cvData} />} />
           <Route path="/articles"     element={<Articles articles={articles} />} />
-          <Route path="/articles/:id" element={<ArticleDetail />} />
+          <Route path="/articles/:id" element={<ArticlePage />} />
         </Routes>
         {!isArticleDetail && <Contact profile={profile} />}
       </main>
