@@ -1,0 +1,72 @@
+# ============================================================
+# render.yaml — Déploiement Render avec Docker
+# Placez ce fichier à la RACINE de votre repo Git
+# ============================================================
+
+services:
+
+  # ── BACKEND DJANGO (Docker) ───────────────────────────────
+  - type: web
+    name: portfolio-hpb-api
+    runtime: docker                  # ← Render utilise votre Dockerfile
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: portfolio.settings_prod
+
+      - key: SECRET_KEY
+        generateValue: true
+
+      - key: ALLOWED_HOSTS
+        value: "portfolio-hpb-api.onrender.com"
+
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://portfolio-hpb.onrender.com"
+
+      - key: DEBUG
+        value: "False"
+
+      - fromDatabase:
+          name: portfolio-hpb-db
+          property: connectionString
+
+    # Commande de migration avant démarrage
+    preDeployCommand: >
+      python manage.py migrate --noinput &&
+      python manage.py import_article
+
+
+  # ── FRONTEND REACT (Static Site) ─────────────────────────
+  - type: web
+    name: portfolio-hpb
+    runtime: static
+    rootDir: frontend
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: "./dist"
+
+    envVars:
+      - key: VITE_API_URL
+        value: "https://portfolio-hpb-api.onrender.com/api"
+      - key: NODE_VERSION
+        value: "20"
+
+    routes:
+      - type: rewrite
+        source: "/*"
+        destination: "/index.html"
+
+    headers:
+      - path: "/assets/*"
+        name: Cache-Control
+        value: "public, max-age=31536000, immutable"
+
+
+# ── PostgreSQL ─────────────────────────────────────────────
+databases:
+  - name: portfolio-hpb-db
+    plan: free
+    databaseName: portfolio_hpb
+    user: portfolio_user
