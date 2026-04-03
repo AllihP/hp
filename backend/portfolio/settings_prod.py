@@ -1,6 +1,6 @@
 """
 settings_prod.py — Production Render
-Django sert le frontend React via WhiteNoise
+React assets servis via STATICFILES_DIRS → collectstatic → WhiteNoise
 """
 import os
 import dj_database_url
@@ -51,16 +51,19 @@ else:
         }
     }
 
-# ── Fichiers statiques Django (admin, ckeditor) ───────────────
-STATIC_URL   = '/static/'
-STATIC_ROOT  = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = []
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# ── Fichiers statiques ────────────────────────────────────────
+STATIC_URL  = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# ── WhiteNoise sert aussi frontend_dist/ ──────────────────────
-# Les fichiers React (/assets/index-xxx.js, etc.) sont servis
-# depuis ce dossier en plus des fichiers statiques Django
-WHITENOISE_ROOT = str(BASE_DIR / 'frontend_dist')
+# react_assets/ contient les assets Vite (assets/index-xxx.js, etc.)
+# collectstatic les copie dans staticfiles/ → WhiteNoise les sert sous /static/
+REACT_ASSETS_DIR = BASE_DIR / 'react_assets'
+if REACT_ASSETS_DIR.exists():
+    STATICFILES_DIRS = [REACT_ASSETS_DIR]
+else:
+    STATICFILES_DIRS = []
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ── Médias ────────────────────────────────────────────────────
 MEDIA_URL  = '/media/'

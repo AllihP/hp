@@ -5,33 +5,36 @@ echo "━━━ ÉTAPE 1 — Build Frontend React ━━━"
 cd frontend
 npm install
 chmod -R +x node_modules/.bin/ 2>/dev/null || true
-# VITE_API_URL=/api + base=/static/ dans vite.config.js
+# base=/static/ dans vite.config.js → assets sous /static/assets/...
 VITE_API_URL=/api node node_modules/vite/bin/vite.js build --mode production
-echo "  dist/ généré :"
-ls dist/
+echo "  dist/ :"
+ls -la dist/
+ls -la dist/assets/ | head -8
 cd ..
 
-echo "━━━ ÉTAPE 2 — Copie index.html → backend/frontend_dist ━━━"
+echo "━━━ ÉTAPE 2 — Copie vers backend ━━━"
+# index.html → frontend_dist (servi par serve_spa)
 rm -rf backend/frontend_dist
 mkdir -p backend/frontend_dist
-# Copier SEULEMENT index.html ici (les assets iront dans staticfiles)
 cp frontend/dist/index.html backend/frontend_dist/index.html
-echo "  ✅ index.html copié"
+
+# assets React → react_assets (ajouté dans STATICFILES_DIRS)
+rm -rf backend/react_assets
+mkdir -p backend/react_assets
+cp -r frontend/dist/assets backend/react_assets/assets
+echo "  index.html copié dans frontend_dist/"
+echo "  assets/ copié dans react_assets/ :"
+ls backend/react_assets/assets/ | head -5
 
 echo "━━━ ÉTAPE 3 — Dépendances Python ━━━"
 cd backend
 pip install -r requirements.txt --quiet
 
-echo "━━━ ÉTAPE 4 — Collecte statiques Django ━━━"
+echo "━━━ ÉTAPE 4 — Collecte statiques ━━━"
+# collectstatic va inclure react_assets/assets/ via STATICFILES_DIRS
 python manage.py collectstatic --noinput
-# Copier les assets React dans staticfiles/
-# (Vite les a générés sous dist/assets/ avec base=/static/)
-mkdir -p staticfiles/assets
-if [ -d "../frontend/dist/assets" ]; then
-    cp -r ../frontend/dist/assets/. staticfiles/assets/
-    echo "  ✅ Assets React copiés dans staticfiles/assets/"
-    ls staticfiles/assets/ | head -5
-fi
+echo "  staticfiles/assets/ :"
+ls staticfiles/assets/ 2>/dev/null | head -5 || echo "  (vide)"
 
 echo "━━━ ÉTAPE 5 — Migrations ━━━"
 python manage.py migrate
@@ -41,6 +44,4 @@ python manage.py import_article
 python manage.py create_default_superuser
 
 echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  🎉 BUILD TERMINÉ"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🎉 BUILD TERMINÉ"
