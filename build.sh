@@ -5,7 +5,8 @@ echo "━━━ ÉTAPE 1 — Build Frontend React ━━━"
 cd frontend
 npm install
 chmod -R +x node_modules/.bin/ 2>/dev/null || true
-node node_modules/vite/bin/vite.js build --mode production
+# VITE_API_URL=/api → URL relative, même domaine que Django
+VITE_API_URL=/api node node_modules/vite/bin/vite.js build --mode production
 cd ..
 
 echo "━━━ ÉTAPE 2 — Copie dist → backend/frontend_dist ━━━"
