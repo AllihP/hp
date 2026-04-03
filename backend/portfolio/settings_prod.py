@@ -1,13 +1,18 @@
 """
-settings_prod.py — Production Render
-Fix : fichiers statiques admin via WhiteNoise
+settings_prod.py — Production Render (monorepo : Django sert le frontend React)
 """
 import os
 import dj_database_url
-from .settings import BASE_DIR, INSTALLED_APPS, MIDDLEWARE as BASE_MIDDLEWARE
+from .settings import (
+    BASE_DIR, INSTALLED_APPS, AUTH_PASSWORD_VALIDATORS,
+    LANGUAGE_CODE, TIME_ZONE, USE_I18N, USE_TZ, DEFAULT_AUTO_FIELD,
+    REST_FRAMEWORK, CKEDITOR_5_CONFIGS, CKEDITOR_5_FILE_STORAGE,
+    CKEDITOR_5_MAX_FILE_SIZE, CKEDITOR_5_UPLOAD_FILE_TYPES,
+    ROOT_URLCONF, WSGI_APPLICATION,
+)
 
 # ── Sécurité ──────────────────────────────────────────────────
-SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me-in-production')
 DEBUG       = os.environ.get('DEBUG', 'False') == 'True'
 
 _hosts = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
@@ -16,10 +21,10 @@ ALLOWED_HOSTS = [h.strip() for h in _hosts.split(',') if h.strip()]
 # ── Applications ──────────────────────────────────────────────
 INSTALLED_APPS = INSTALLED_APPS
 
-# ── Middleware — WhiteNoise DOIT être en 2ème position ────────
+# ── Middleware — WhiteNoise en 2ème position (obligatoire) ────
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',   # ← juste après Security
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -39,7 +44,6 @@ if DATABASE_URL:
         )
     }
 else:
-    # Fallback SQLite (dev local)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -47,11 +51,16 @@ else:
         }
     }
 
-# ── Fichiers statiques — WhiteNoise ──────────────────────────
+# ── Fichiers statiques ────────────────────────────────────────
 STATIC_URL   = '/static/'
 STATIC_ROOT  = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = []
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATICFILES_DIRS = []   # vide en prod — tout vient de collectstatic
+
+# WhiteNoise sert aussi le dossier frontend_dist/ à la racine /
+# → les assets React (/assets/index-xxx.js etc.) sont servis directement
+WHITENOISE_ROOT       = BASE_DIR / 'frontend_dist'
+WHITENOISE_INDEX_FILE = True
 
 # ── Médias ────────────────────────────────────────────────────
 MEDIA_URL  = '/media/'
@@ -74,32 +83,21 @@ TEMPLATES = [
     },
 ]
 
-# ── CORS ──────────────────────────────────────────────────────
-_cors = os.environ.get(
-    'CORS_ALLOWED_ORIGINS',
-    'http://localhost:5173,http://localhost:3000'
-)
-CORS_ALLOWED_ORIGINS   = [o.strip() for o in _cors.split(',') if o.strip()]
+# ── CORS — même domaine, pas besoin de CORS pour le frontend ──
+CORS_ALLOWED_ORIGINS   = []
 CORS_ALLOW_ALL_ORIGINS = False
 
-# ── Autres settings hérités de settings.py ───────────────────
-from .settings import (  # noqa
-    ROOT_URLCONF, WSGI_APPLICATION, AUTH_PASSWORD_VALIDATORS,
-    LANGUAGE_CODE, TIME_ZONE, USE_I18N, USE_TZ,
-    DEFAULT_AUTO_FIELD, REST_FRAMEWORK,
-    CKEDITOR_5_CONFIGS, CKEDITOR_5_FILE_STORAGE,
-    CKEDITOR_5_MAX_FILE_SIZE, CKEDITOR_5_UPLOAD_FILE_TYPES,
-)
-
-# ── HTTPS (seulement si DEBUG=False) ─────────────────────────
+# ── HTTPS ────────────────────────────────────────────────────
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER        = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT            = True
     SESSION_COOKIE_SECURE          = True
     CSRF_COOKIE_SECURE             = True
+    CSRF_TRUSTED_ORIGINS           = [
+        f"https://{h}" for h in ALLOWED_HOSTS if h not in ('localhost', '127.0.0.1')
+    ]
     SECURE_HSTS_SECONDS            = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_CONTENT_TYPE_NOSNIFF    = True
 
 # ── Logging ───────────────────────────────────────────────────
 LOGGING = {
@@ -107,11 +105,4 @@ LOGGING = {
     'disable_existing_loggers': False,
     'handlers': {'console': {'class': 'logging.StreamHandler'}},
     'root': {'handlers': ['console'], 'level': 'WARNING'},
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': os.environ.get('DJANGO_LOG_LEVEL', 'WARNING'),
-            'propagate': False,
-        },
-    },
 }
