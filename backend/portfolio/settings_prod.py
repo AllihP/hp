@@ -1,5 +1,6 @@
 """
-settings_prod.py — Production Render (monorepo : Django sert le frontend React)
+settings_prod.py — Production Render
+Django sert le frontend React via WhiteNoise
 """
 import os
 import dj_database_url
@@ -18,10 +19,9 @@ DEBUG       = os.environ.get('DEBUG', 'False') == 'True'
 _hosts = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
 ALLOWED_HOSTS = [h.strip() for h in _hosts.split(',') if h.strip()]
 
-# ── Applications ──────────────────────────────────────────────
 INSTALLED_APPS = INSTALLED_APPS
 
-# ── Middleware — WhiteNoise en 2ème position (obligatoire) ────
+# ── Middleware ────────────────────────────────────────────────
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -51,16 +51,16 @@ else:
         }
     }
 
-# ── Fichiers statiques ────────────────────────────────────────
+# ── Fichiers statiques Django (admin, ckeditor) ───────────────
 STATIC_URL   = '/static/'
 STATIC_ROOT  = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = []
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# WhiteNoise sert aussi le dossier frontend_dist/ à la racine /
-# → les assets React (/assets/index-xxx.js etc.) sont servis directement
-WHITENOISE_ROOT       = BASE_DIR / 'frontend_dist'
-WHITENOISE_INDEX_FILE = True
+# ── WhiteNoise sert aussi frontend_dist/ ──────────────────────
+# Les fichiers React (/assets/index-xxx.js, etc.) sont servis
+# depuis ce dossier en plus des fichiers statiques Django
+WHITENOISE_ROOT = str(BASE_DIR / 'frontend_dist')
 
 # ── Médias ────────────────────────────────────────────────────
 MEDIA_URL  = '/media/'
@@ -83,18 +83,20 @@ TEMPLATES = [
     },
 ]
 
-# ── CORS — même domaine, pas besoin de CORS pour le frontend ──
+# ── CORS ──────────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS   = []
 CORS_ALLOW_ALL_ORIGINS = False
 
-# ── HTTPS ────────────────────────────────────────────────────
+# ── HTTPS ─────────────────────────────────────────────────────
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER        = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT            = True
     SESSION_COOKIE_SECURE          = True
     CSRF_COOKIE_SECURE             = True
     CSRF_TRUSTED_ORIGINS           = [
-        f"https://{h}" for h in ALLOWED_HOSTS if h not in ('localhost', '127.0.0.1')
+        f"https://{h}"
+        for h in ALLOWED_HOSTS
+        if h not in ('localhost', '127.0.0.1')
     ]
     SECURE_HSTS_SECONDS            = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
@@ -104,5 +106,5 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {'console': {'class': 'logging.StreamHandler'}},
-    'root': {'handlers': ['console'], 'level': 'WARNING'},
+    'root': {'handlers': ['console'], 'level': 'INFO'},
 }

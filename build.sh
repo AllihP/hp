@@ -5,15 +5,19 @@ echo "━━━ ÉTAPE 1 — Build Frontend React ━━━"
 cd frontend
 npm install
 chmod -R +x node_modules/.bin/ 2>/dev/null || true
-# VITE_API_URL=/api → URL relative, même domaine que Django
 VITE_API_URL=/api node node_modules/vite/bin/vite.js build --mode production
+echo "  Contenu de dist/ :"
+ls -la dist/
+ls -la dist/assets/ 2>/dev/null | head -10 || true
 cd ..
 
 echo "━━━ ÉTAPE 2 — Copie dist → backend/frontend_dist ━━━"
 rm -rf backend/frontend_dist
 mkdir -p backend/frontend_dist
 cp -r frontend/dist/. backend/frontend_dist/
-echo "  ✅ $(ls backend/frontend_dist | wc -l) fichiers copiés"
+echo "  Contenu de backend/frontend_dist/ :"
+ls -la backend/frontend_dist/
+ls -la backend/frontend_dist/assets/ 2>/dev/null | head -10 || true
 
 echo "━━━ ÉTAPE 3 — Dépendances Python ━━━"
 cd backend
@@ -29,4 +33,7 @@ echo "━━━ ÉTAPE 6 — Import article + Superuser ━━━"
 python manage.py import_article
 python manage.py create_default_superuser
 
-echo "━━━ 🎉 BUILD TERMINÉ ━━━"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  🎉 BUILD TERMINÉ"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
