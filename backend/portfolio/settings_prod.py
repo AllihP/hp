@@ -1,6 +1,5 @@
 """
 settings_prod.py — Production Render
-React assets servis via STATICFILES_DIRS → collectstatic → WhiteNoise
 """
 import os
 import dj_database_url
@@ -12,7 +11,6 @@ from .settings import (
     ROOT_URLCONF, WSGI_APPLICATION,
 )
 
-# ── Sécurité ──────────────────────────────────────────────────
 SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me-in-production')
 DEBUG       = os.environ.get('DEBUG', 'False') == 'True'
 
@@ -21,7 +19,6 @@ ALLOWED_HOSTS = [h.strip() for h in _hosts.split(',') if h.strip()]
 
 INSTALLED_APPS = INSTALLED_APPS
 
-# ── Middleware ────────────────────────────────────────────────
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -34,42 +31,31 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# ── Base de données ───────────────────────────────────────────
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-        )
+        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
     }
 else:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+        'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'}
     }
 
-# ── Fichiers statiques ────────────────────────────────────────
+# ── Statiques ─────────────────────────────────────────────────
 STATIC_URL  = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# react_assets/ contient les assets Vite (assets/index-xxx.js, etc.)
-# collectstatic les copie dans staticfiles/ → WhiteNoise les sert sous /static/
+# ⚠️ PAS CompressedManifest — ça renomme les fichiers et casse index.html
+# WhiteNoise sert quand même les fichiers compressés automatiquement
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
+# Les assets React (générés par Vite) sont inclus via STATICFILES_DIRS
 REACT_ASSETS_DIR = BASE_DIR / 'react_assets'
-if REACT_ASSETS_DIR.exists():
-    STATICFILES_DIRS = [REACT_ASSETS_DIR]
-else:
-    STATICFILES_DIRS = []
+STATICFILES_DIRS = [REACT_ASSETS_DIR] if REACT_ASSETS_DIR.exists() else []
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# ── Médias ────────────────────────────────────────────────────
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# ── Templates ─────────────────────────────────────────────────
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -86,25 +72,21 @@ TEMPLATES = [
     },
 ]
 
-# ── CORS ──────────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS   = []
 CORS_ALLOW_ALL_ORIGINS = False
 
-# ── HTTPS ─────────────────────────────────────────────────────
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER        = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT            = True
     SESSION_COOKIE_SECURE          = True
     CSRF_COOKIE_SECURE             = True
     CSRF_TRUSTED_ORIGINS           = [
-        f"https://{h}"
-        for h in ALLOWED_HOSTS
+        f"https://{h}" for h in ALLOWED_HOSTS
         if h not in ('localhost', '127.0.0.1')
     ]
     SECURE_HSTS_SECONDS            = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
-# ── Logging ───────────────────────────────────────────────────
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
