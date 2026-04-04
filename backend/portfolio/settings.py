@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 #  IS_PRODUCTION = True sur Render (DATABASE_URL présent)
 # ══════════════════════════════════════════════════════════════
 DATABASE_URL  = os.environ.get('DATABASE_URL', '')
-IS_PRODUCTION = bool(DATABASE_URL)
+IS_PRODUCTION = bool(DATABASE_URL) or os.environ.get("RENDER", "") == "true"
 
 # ══════════════════════════════════════════════════════════════
 #  1. VARIABLES D'ENVIRONNEMENT & SECRETS
