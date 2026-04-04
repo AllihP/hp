@@ -102,6 +102,22 @@ def get_article_detail(request, pk):
 
 
 @api_view(['GET'])
+def get_article_by_doi(request):
+    """GET /api/articles/by_doi/?doi=10.xxxx/..."""
+    doi = _clean(request.query_params.get('doi', ''), 150)
+    if not doi:
+        return Response({'error': 'Paramètre doi requis.'}, status=400)
+    try:
+        article = Article.objects.get(doi=doi, status='published')
+    except Article.DoesNotExist:
+        return Response({'error': 'Article introuvable.'}, status=404)
+    Article.objects.filter(pk=article.pk).update(view_count=article.view_count + 1)
+    return Response(
+        ArticleDetailSerializer(article, context={'request': request}).data
+    )
+
+
+@api_view(['GET'])
 def get_related_articles(request, pk):
     try:
         Article.objects.get(pk=pk, status='published')
