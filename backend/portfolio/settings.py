@@ -4,19 +4,40 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ── Mode ──────────────────────────────────────────────────────
-# En local : DEBUG=True automatiquement si DATABASE_URL absent
-# Sur Render : DEBUG=False via variable d'environnement
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-portfolio-hpb-dev-only')
-DATABASE_URL = os.environ.get('DATABASE_URL', '')
-IS_PRODUCTION = bool(DATABASE_URL)  # True sur Render (PostgreSQL), False en local
+# ══════════════════════════════════════════════════════════════
+#  DÉTECTION ENVIRONNEMENT AUTO
+#  IS_PRODUCTION = True sur Render (DATABASE_URL présent)
+# ══════════════════════════════════════════════════════════════
+DATABASE_URL  = os.environ.get('DATABASE_URL', '')
+IS_PRODUCTION = bool(DATABASE_URL)
 
+# ══════════════════════════════════════════════════════════════
+#  1. VARIABLES D'ENVIRONNEMENT & SECRETS
+# ══════════════════════════════════════════════════════════════
+
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-local-dev-CHANGE-IN-PROD')
+
+# Erreur fatale si clé insécurisée en production
+if IS_PRODUCTION and 'insecure' in SECRET_KEY:
+    raise RuntimeError(
+        "FATAL: SECRET_KEY non sécurisée en production.\n"
+        "Définissez SECRET_KEY dans les variables Render → Environment."
+    )
+
+# ══════════════════════════════════════════════════════════════
+#  2. SÉCURITÉ DE BASE DJANGO
+# ══════════════════════════════════════════════════════════════
+
+# DEBUG jamais True en production
 DEBUG = not IS_PRODUCTION
-ALLOWED_HOSTS = ['*'] if not IS_PRODUCTION else [
-    h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'hillaprince.onrender.com').split(',')
-]
 
-# ── Applications ──────────────────────────────────────────────
+# ALLOWED_HOSTS — jamais ['*'] en production
+if IS_PRODUCTION:
+    _hosts = os.environ.get('ALLOWED_HOSTS', 'hillaprince.onrender.com')
+    ALLOWED_HOSTS = [h.strip() for h in _hosts.split(',') if h.strip()]
+else:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -30,20 +51,20 @@ INSTALLED_APPS = [
     'api',
 ]
 
-# ── Middleware ────────────────────────────────────────────────
+# Middleware — ordre critique pour la sécurité
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',   # toujours présent
+    'django.middleware.security.SecurityMiddleware',     # 1er — HTTPS redirect
+    'whitenoise.middleware.WhiteNoiseMiddleware',         # 2ème — statiques
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',              # avant CommonMiddleware
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',          # protection CSRF
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',  # anti-clickjacking
 ]
 
-ROOT_URLCONF = 'portfolio.urls'
+ROOT_URLCONF     = 'portfolio.urls'
 WSGI_APPLICATION = 'portfolio.wsgi.application'
 
 TEMPLATES = [{
@@ -58,71 +79,144 @@ TEMPLATES = [{
     ]},
 }]
 
-# ── Base de données ───────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════
+#  BASE DE DONNÉES
+# ══════════════════════════════════════════════════════════════
 if IS_PRODUCTION:
     DATABASES = {
-        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,    # SSL obligatoire avec PostgreSQL Render
+        )
     }
 else:
     DATABASES = {
-        'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'}
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME':   BASE_DIR / 'db.sqlite3',
+        }
     }
 
+# ══════════════════════════════════════════════════════════════
+#  MOTS DE PASSE — validation forte
+# ══════════════════════════════════════════════════════════════
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+     'OPTIONS': {'min_length': 12}},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-LANGUAGE_CODE = 'fr-fr'
-TIME_ZONE = 'Africa/Ndjamena'
-USE_I18N = True
-USE_TZ = True
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# ══════════════════════════════════════════════════════════════
+#  AUTHENTIFICATION & ACCÈS ADMIN
+# ══════════════════════════════════════════════════════════════
 
-# ── Fichiers statiques ────────────────────────────────────────
+# Sessions — expiration courte
+SESSION_COOKIE_HTTPONLY             = True   # inaccessible au JS
+SESSION_COOKIE_SAMESITE             = 'Lax'
+SESSION_COOKIE_AGE                  = 3600   # 1h d'inactivité
+SESSION_EXPIRE_AT_BROWSER_CLOSE     = True   # expire à la fermeture
+SESSION_SAVE_EVERY_REQUEST          = False
+
+# CSRF
+CSRF_COOKIE_HTTPONLY = False  # doit être lisible par JS pour les SPA
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_USE_SESSIONS    = False
+
+# ══════════════════════════════════════════════════════════════
+#  HTTPS & CERTIFICATS (production uniquement)
+# ══════════════════════════════════════════════════════════════
+if IS_PRODUCTION:
+    # Redirection HTTP → HTTPS automatique
+    SECURE_SSL_REDIRECT                = True
+    SECURE_PROXY_SSL_HEADER            = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+    # HSTS — force HTTPS pour 1 an
+    SECURE_HSTS_SECONDS                = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS     = True
+    SECURE_HSTS_PRELOAD                = True
+
+    # Cookies sécurisés HTTPS uniquement
+    SESSION_COOKIE_SECURE              = True
+    CSRF_COOKIE_SECURE                 = True
+
+    # Headers de sécurité
+    SECURE_CONTENT_TYPE_NOSNIFF        = True  # anti MIME-sniffing
+    SECURE_REFERRER_POLICY             = 'strict-origin-when-cross-origin'
+    X_FRAME_OPTIONS                    = 'DENY'
+
+    # Origines de confiance pour CSRF
+    CSRF_TRUSTED_ORIGINS = ['https://hillaprince.onrender.com']
+
+# ══════════════════════════════════════════════════════════════
+#  CORS — Cross-Origin Resource Sharing
+# ══════════════════════════════════════════════════════════════
+if IS_PRODUCTION:
+    CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOWED_ORIGINS   = ['https://hillaprince.onrender.com']
+    CORS_ALLOW_CREDENTIALS = False
+else:
+    CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOWED_ORIGINS   = [
+        'http://localhost:5173',
+        'http://localhost:3000',
+        'http://127.0.0.1:5173',
+    ]
+
+# ══════════════════════════════════════════════════════════════
+#  REST FRAMEWORK — rate limiting API
+# ══════════════════════════════════════════════════════════════
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',  # pas de browsable API en prod
+    ],
+    # Rate limiting global
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+        # Throttles spécifiques définis dans views.py
+        'contact': '5/hour',
+        'cv_download': '10/hour',
+    },
+}
+
+# ══════════════════════════════════════════════════════════════
+#  FICHIERS STATIQUES
+# ══════════════════════════════════════════════════════════════
 STATIC_URL  = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Assets React (copiés par build.sh dans react_assets/)
 REACT_ASSETS_DIR = BASE_DIR / 'react_assets'
 STATICFILES_DIRS = [REACT_ASSETS_DIR] if REACT_ASSETS_DIR.exists() else []
-
-# WhiteNoise — sans Manifest pour ne pas renommer les assets Vite
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# ── CORS ──────────────────────────────────────────────────────
-CORS_ALLOW_ALL_ORIGINS = not IS_PRODUCTION  # True en local, False en prod
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "http://127.0.0.1:5173",
-]
+# ══════════════════════════════════════════════════════════════
+#  INTERNATIONALISATION
+# ══════════════════════════════════════════════════════════════
+LANGUAGE_CODE      = 'fr-fr'
+TIME_ZONE          = 'Africa/Ndjamena'
+USE_I18N           = True
+USE_TZ             = True
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ── HTTPS (production uniquement) ────────────────────────────
-if IS_PRODUCTION:
-    SECURE_PROXY_SSL_HEADER        = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT            = True
-    SESSION_COOKIE_SECURE          = True
-    CSRF_COOKIE_SECURE             = True
-    CSRF_TRUSTED_ORIGINS           = ['https://hillaprince.onrender.com']
-    SECURE_HSTS_SECONDS            = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-
-# ── REST Framework ────────────────────────────────────────────
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.AllowAny'],
-    'DEFAULT_RENDERER_CLASSES':   ['rest_framework.renderers.JSONRenderer'],
-}
-
-# ── CKEditor 5 ────────────────────────────────────────────────
-CKEDITOR_5_FILE_STORAGE    = 'api.storage.ArticleImageStorage'
+# ══════════════════════════════════════════════════════════════
+#  CKEDITOR 5
+# ══════════════════════════════════════════════════════════════
+CKEDITOR_5_FILE_STORAGE      = 'api.storage.ArticleImageStorage'
 CKEDITOR_5_UPLOAD_FILE_TYPES = ['jpeg', 'jpg', 'png', 'gif', 'webp', 'svg']
-CKEDITOR_5_MAX_FILE_SIZE   = 10
+CKEDITOR_5_MAX_FILE_SIZE     = 10
 
 CKEDITOR_5_CONFIGS = {
     'article': {
@@ -159,14 +253,15 @@ CKEDITOR_5_CONFIGS = {
         'heading': {
             'options': [
                 {'model': 'paragraph', 'title': 'Paragraphe', 'class': 'ck-heading_paragraph'},
-                {'model': 'heading1', 'view': 'h1', 'title': 'Titre 1', 'class': 'ck-heading_heading1'},
+                {'model': 'heading1', 'view': 'h1', 'title': 'Titre 1',   'class': 'ck-heading_heading1'},
                 {'model': 'heading2', 'view': 'h2', 'title': 'Titre 2 ★', 'class': 'ck-heading_heading2'},
-                {'model': 'heading3', 'view': 'h3', 'title': 'Titre 3', 'class': 'ck-heading_heading3'},
-                {'model': 'heading4', 'view': 'h4', 'title': 'Titre 4', 'class': 'ck-heading_heading4'},
+                {'model': 'heading3', 'view': 'h3', 'title': 'Titre 3',   'class': 'ck-heading_heading3'},
+                {'model': 'heading4', 'view': 'h4', 'title': 'Titre 4',   'class': 'ck-heading_heading4'},
             ],
         },
         'table': {
-            'contentToolbar': ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties'],
+            'contentToolbar': ['tableColumn', 'tableRow', 'mergeTableCells',
+                               'tableProperties', 'tableCellProperties'],
         },
         'codeBlock': {
             'languages': [
@@ -182,16 +277,49 @@ CKEDITOR_5_CONFIGS = {
                 {'language': 'sql',        'label': 'SQL'},
             ],
         },
-        'link': {'addTargetToExternalLinks': True, 'defaultProtocol': 'https://'},
+        'link':     {'addTargetToExternalLinks': True, 'defaultProtocol': 'https://'},
         'language': 'fr',
-        'height': '650px',
+        'height':   '650px',
     },
 }
 
-# ── Logging ───────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════
+#  LOGGING — monitoring sécurité
+# ══════════════════════════════════════════════════════════════
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'handlers': {'console': {'class': 'logging.StreamHandler'}},
-    'root': {'handlers': ['console'], 'level': 'INFO' if IS_PRODUCTION else 'DEBUG'},
+    'formatters': {
+        'secure': {
+            'format': '[{levelname}] {asctime} {name} — {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class':     'logging.StreamHandler',
+            'formatter': 'secure',
+        },
+    },
+    'loggers': {
+        'django.security': {   # tentatives d'intrusion, erreurs CSRF, etc.
+            'handlers':  ['console'],
+            'level':     'WARNING',
+            'propagate': False,
+        },
+        'django.request': {    # erreurs 4xx et 5xx
+            'handlers':  ['console'],
+            'level':     'WARNING',
+            'propagate': False,
+        },
+        'django': {
+            'handlers':  ['console'],
+            'level':     'INFO' if IS_PRODUCTION else 'DEBUG',
+            'propagate': False,
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level':    'WARNING' if IS_PRODUCTION else 'INFO',
+    },
 }
