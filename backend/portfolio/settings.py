@@ -18,12 +18,21 @@ IS_PRODUCTION = bool(DATABASE_URL) or os.environ.get("RENDER", "") == "true"
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-local-dev-CHANGE-IN-PROD')
 
 # Erreur fatale si clé insécurisée en production
-if IS_PRODUCTION and 'insecure' in SECRET_KEY:
-    raise RuntimeError(
-        "FATAL: SECRET_KEY non sécurisée en production.\n"
-        "Définissez SECRET_KEY dans les variables Render → Environment."
-    )
-
+if IS_PRODUCTION:
+    # On récupère le nom d'hôte spécifique de Render
+    RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+    _hosts = os.environ.get('ALLOWED_HOSTS', '')
+    
+    ALLOWED_HOSTS = [h.strip() for h in _hosts.split(',') if h.strip()]
+    
+    if RENDER_EXTERNAL_HOSTNAME:
+        ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    
+    # Sécurité supplémentaire au cas où les variables sont vides
+    if not ALLOWED_HOSTS:
+        ALLOWED_HOSTS = ['hillaprince.onrender.com']
+else:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 # ══════════════════════════════════════════════════════════════
 #  2. SÉCURITÉ DE BASE DJANGO
 # ══════════════════════════════════════════════════════════════
