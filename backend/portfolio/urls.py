@@ -26,7 +26,7 @@ def serve_spa(request):
 
 
 urlpatterns = [
-    path('admin/',     admin.site.urls),
+    path('sirius/',     admin.site.urls),
     path('api/',       include('api.urls')),
     path('ckeditor5/', include('django_ckeditor_5.urls')),
 
