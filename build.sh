@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Exit on error
 set -o errexit
 
 echo "━━━ ÉTAPE 1 — Build Frontend React ━━━"
@@ -40,8 +41,12 @@ echo "━━━ ÉTAPE 5 — Migrations ━━━"
 python manage.py migrate
 
 echo "━━━ ÉTAPE 6 — Import article + Superuser ━━━"
-python manage.py import_article
-python manage.py create_default_superuser
+# On utilise || true pour éviter que le build échoue si l'article n'existe pas encore
+# ou si le superuser est déjà créé.
+python manage.py import_article || echo "⚠️ Note: Aucun article importé (Base vide ou déjà remplie)"
+python manage.py create_default_superuser || echo "⚠️ Note: Le superuser existe déjà ou n'a pas pu être créé"
 
 echo ""
-echo "🎉 BUILD TERMINÉ"
+echo "============================================================"
+echo "   BUILD TERMINÉ AVEC SUCCÈS 🎉"
+echo "============================================================"
