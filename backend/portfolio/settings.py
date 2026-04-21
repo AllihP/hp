@@ -2,24 +2,24 @@ from pathlib import Path
 import os
 import dj_database_url
 
-# Chemin de base du projet
+# Chemin de base
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ══════════════════════════════════════════════════════════════
-#  DÉTECTION ENVIRONNEMENT AUTO
+#  DÉTECTION DE L'ENVIRONNEMENT
 # ══════════════════════════════════════════════════════════════
-# On considère qu'on est en production si la variable RENDER est présente
-IS_PRODUCTION = os.environ.get('RENDER', '').lower() == 'true'
+# On active la prod si RENDER=true ou si une DATABASE_URL est présente
+IS_PRODUCTION = os.environ.get('RENDER', '').lower() == 'true' or 'DATABASE_URL' in os.environ
 
 # ══════════════════════════════════════════════════════════════
 #  1. SÉCURITÉ & SECRETS
 # ══════════════════════════════════════════════════════════════
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-local-dev-key-change-it')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-local-dev-key-valide-uniquement-en-local')
 
 DEBUG = not IS_PRODUCTION
 
 if IS_PRODUCTION:
-    # Récupération dynamique du nom d'hôte Render
+    # Récupération dynamique du nom d'hôte de Render
     RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
     _hosts = os.environ.get('ALLOWED_HOSTS', 'hillaprince.onrender.com')
     ALLOWED_HOSTS = [h.strip() for h in _hosts.split(',') if h.strip()]
@@ -30,13 +30,11 @@ else:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
 # ══════════════════════════════════════════════════════════════
-#  2. BASE DE DONNÉES (CORRIGÉE)
+#  2. BASE DE DONNÉES (CORRIGÉE POUR RENDER & EXTERNE)
 # ══════════════════════════════════════════════════════════════
-if IS_PRODUCTION:
-    # On récupère l'URL de la base (PostgreSQL Docker ou Render)
-    # Assurez-vous que DATABASE_URL est bien définie dans votre dashboard Render
-    DATABASE_URL = os.environ.get('DATABASE_URL')
-    
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if IS_PRODUCTION and DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
@@ -44,14 +42,10 @@ if IS_PRODUCTION:
             ssl_require=True
         )
     }
-    # Option cruciale pour forcer le SSL sur les connexions distantes
+    # Important pour Neon, Supabase, etc.
     DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
-    
-    # Sécurité au cas où dj_database_url échouerait (évite ImproperlyConfigured)
-    if not DATABASES['default'].get('ENGINE'):
-         raise RuntimeError("DATABASE_URL est vide ou mal configurée sur Render.")
 else:
-    # Local (SQLite)
+    # Mode Local (SQLite) pour ne pas bloquer le collectstatic ou le dev
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -69,15 +63,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Packages tiers
     'rest_framework',
     'corsheaders',
     'django_ckeditor_5',
-    'api', # Votre application
+    # Votre application
+    'api',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # 2ème position obligatoire
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Doit être juste après SecurityMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -104,61 +100,52 @@ TEMPLATES = [{
 WSGI_APPLICATION = 'portfolio.wsgi.application'
 
 # ══════════════════════════════════════════════════════════════
-#  4. SÉCURITÉ HTTPS (PROD UNIQUEMENT)
+#  4. SÉCURITÉ HTTPS (PRODUCTION)
 # ══════════════════════════════════════════════════════════════
 if IS_PRODUCTION:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000 # 1 an
+    SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
     CSRF_TRUSTED_ORIGINS = ['https://hillaprince.onrender.com']
 
 # ══════════════════════════════════════════════════════════════
-#  5. FICHIERS STATIQUES & MEDIA
+#  5. FICHIERS STATIQUES & REACT
 # ══════════════════════════════════════════════════════════════
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Dossier où React construit ses fichiers (dist/)
+# Dossier où arrive le build de React
 REACT_ASSETS_DIR = BASE_DIR / 'react_assets'
-# On n'utilise pas .exists() ici pour éviter les erreurs de build initial
-STATICFILES_DIRS = [REACT_ASSETS_DIR] 
+STATICFILES_DIRS = [REACT_ASSETS_DIR]
 
-# Compression et cache WhiteNoise
+# WhiteNoise pour servir les fichiers statiques de manière efficace
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ══════════════════════════════════════════════════════════════
-#  6. REST FRAMEWORK & CORS
+#  6. CORS & API
 # ══════════════════════════════════════════════════════════════
-CORS_ALLOWED_ORIGINS = [
-    'https://hillaprince.onrender.com',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-] if IS_PRODUCTION else []
-
-CORS_ALLOW_ALL_ORIGINS = not IS_PRODUCTION
+if IS_PRODUCTION:
+    CORS_ALLOWED_ORIGINS = ['https://hillaprince.onrender.com']
+else:
+    CORS_ALLOW_ALL_ORIGINS = True
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.AllowAny'],
     'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer'],
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle',
-    ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '100/hour',
         'user': '1000/hour',
     },
 }
 
-# Internationalisation
+# Configuration par défaut
 LANGUAGE_CODE = 'fr-fr'
 TIME_ZONE = 'Africa/Ndjamena'
 USE_I18N = True
@@ -167,9 +154,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CKEDITOR 5
 CKEDITOR_5_FILE_STORAGE = 'api.storage.ArticleImageStorage'
-CKEDITOR_5_UPLOAD_FILE_TYPES = ['jpeg', 'jpg', 'png', 'gif', 'webp', 'svg']
-CKEDITOR_5_MAX_FILE_SIZE = 10
-CKEDITOR_5_CONFIGS = {'article': {'height': '600px', 'toolbar': ['heading', '|', 'bold', 'italic', 'link', 'insertImage', 'codeBlock']}}
+CKEDITOR_5_CONFIGS = {
+    'article': {
+        'height': '400px',
+        'toolbar': ['heading', '|', 'bold', 'italic', 'link', 'insertImage', 'codeBlock'],
+    }
+}
 
 # ══════════════════════════════════════════════════════════════
 #  7. LOGGING
@@ -178,14 +168,10 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'secure': {'format': '[{levelname}] {asctime} {name} — {message}', 'style': '{'},
+        'verbose': {'format': '[{levelname}] {asctime} {name} — {message}', 'style': '{'},
     },
     'handlers': {
-        'console': {'class': 'logging.StreamHandler', 'formatter': 'secure'},
-    },
-    'loggers': {
-        'django.utils.autoreload': {'level': 'INFO'}, # Masque les logs de scan de fichiers
-        'django.db.backends': {'level': 'WARNING'},
+        'console': {'class': 'logging.StreamHandler', 'formatter': 'verbose'},
     },
     'root': {'handlers': ['console'], 'level': 'INFO'},
 }
