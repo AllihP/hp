@@ -111,6 +111,19 @@ if IS_PRODUCTION:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     CSRF_TRUSTED_ORIGINS = ['https://hillaprince.onrender.com']
+    # Empêche de charger ton site dans un <iframe> (évite le Clickjacking)
+    X_FRAME_OPTIONS = 'DENY'
+    
+    # Force le navigateur à ne pas deviner le type de contenu (évite le XSS)
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    
+    # Politique de referer : ne pas envoyer ton URL à des sites externes
+    SECURE_REFERRER_POLICY = 'same-origin'
+    
+    # Content Security Policy (CSP) - Optionnel mais puissant
+    # Autorise uniquement les scripts venant de ton domaine
+    CSP_DEFAULT_SRC = ("'self'",)
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
 
 # ══════════════════════════════════════════════════════════════
 #  5. FICHIERS STATIQUES & REACT
