@@ -3,6 +3,10 @@
 set -o errexit
 
 echo "━━━ ÉTAPE 1 — Build Frontend React ━━━"
+# Dans build.sh
+mkdir -p backend/frontend_dist
+cp frontend/dist/index.html backend/frontend_dist/index.html
+
 cd frontend
 npm install
 chmod -R +x node_modules/.bin/ 2>/dev/null || true
