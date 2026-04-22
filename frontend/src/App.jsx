@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import axios from 'axios' // Import indispensable pour la correction 403
 import { LangProvider } from './context/LangContext'
 import { getProfile, getSkills, getCV, getArticles } from './hooks/useApi'
 import Navbar from './components/Navbar'
@@ -13,6 +14,11 @@ import Articles from './pages/Articles'
 import ArticlePage from './pages/ArticlePage'
 import './i18n/index'
 import './styles/global.css'
+
+// Configuration globale Sécurité pour Render (Correction erreur 403)
+axios.defaults.withCredentials = true;
+axios.defaults.xsrfCookieName = 'csrftoken';
+axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 
 const FALLBACK = {
   profile: {
@@ -30,9 +36,9 @@ const FALLBACK = {
   },
   skills: [
     { id:1, name_fr:'UI et UX Design',    name_en:'UI & UX Design',    name_ar:'تصميم واجهة المستخدم', percentage:95, icon:'fa-pen-ruler' },
-    { id:2, name_fr:'Conception Système', name_en:'System Design',     name_ar:'تصميم الأنظمة',        percentage:98, icon:'fa-diagram-project' },
+    { id:2, name_fr:'Conception Système', name_en:'System Design',     name_ar:'تصميم الأنظمة',         percentage:98, icon:'fa-diagram-project' },
     { id:3, name_fr:'Méthodes Agiles',    name_en:'Agile Methods',     name_ar:'المنهجيات الرشيقة',    percentage:70, icon:'fa-arrows-spin' },
-    { id:4, name_fr:'Développement Web',  name_en:'Web Development',   name_ar:'تطوير الويب',          percentage:85, icon:'fa-code' },
+    { id:4, name_fr:'Développement Web',  name_en:'Web Development',   name_ar:'تطوير الويب',           percentage:85, icon:'fa-code' },
     { id:5, name_fr:'Infrastructure GIS', name_en:'GIS Infrastructure',name_ar:'البنية التحتية GIS',   percentage:90, icon:'fa-map' },
     { id:6, name_fr:'DevOps & Cloud',     name_en:'DevOps & Cloud',    name_ar:'ديف أوبس والسحابة',    percentage:75, icon:'fa-cloud' },
   ],
@@ -52,21 +58,14 @@ const FALLBACK = {
       { id:3, title_fr:'GIS Professional', title_en:'GIS Professional', title_ar:'متخصص GIS', issuer:'ESRI / QGIS Foundation', year:'2021', icon:'fa-map' },
     ],
   },
-  articles: [
-    { id:1, title_fr:'GitHub Actions : Guide Complet avec Exemples', title_en:'GitHub Actions: Complete Guide with Examples', title_ar:'GitHub Actions: دليل شامل', summary_fr:'Automatisez vos workflows CI/CD avec GitHub Actions.', summary_en:'Automate your CI/CD workflows with GitHub Actions.', summary_ar:'أتمتة سير عمل CI/CD.', content_fr:'', content_en:'', content_ar:'', icon:'fa-github', link:'#', category:'DevOps', read_time:12 },
-    { id:2, title_fr:'Red Hat avec GitHub Actions', title_en:'Red Hat with GitHub Actions', title_ar:'Red Hat مع GitHub Actions', summary_fr:'Intégrez Red Hat dans vos pipelines CI/CD.', summary_en:'Integrate Red Hat into your CI/CD pipelines.', summary_ar:'دمج Red Hat في مسارات CI/CD.', content_fr:'', content_en:'', content_ar:'', icon:'fa-hat-cowboy', link:'#', category:'Linux', read_time:10 },
-    { id:3, title_fr:"GitHub Actions et Azure DevOps", title_en:'GitHub Actions and Azure DevOps', title_ar:'GitHub Actions وAzure DevOps', summary_fr:"Guide d'intégration GitHub Actions + Azure.", summary_en:'Integration guide GitHub Actions + Azure.', summary_ar:'دليل التكامل مع Azure.', content_fr:'', content_en:'', content_ar:'', icon:'fa-cloud', link:'#', category:'Cloud', read_time:15 },
-    { id:4, title_fr:'Infrastructure GIS avec PostGIS', title_en:'GIS Infrastructure with PostGIS', title_ar:'البنية التحتية GIS مع PostGIS', summary_fr:'PostGIS, GeoServer et OpenLayers en production.', summary_en:'PostGIS, GeoServer and OpenLayers in production.', summary_ar:'PostGIS وGeoServer في الإنتاج.', content_fr:'', content_en:'', content_ar:'', icon:'fa-map', link:'#', category:'GIS', read_time:18 },
-    { id:5, title_fr:'Django REST Framework Avancé', title_en:'Advanced Django REST Framework', title_ar:'Django REST Framework المتقدم', summary_fr:"Construction d'une API REST robuste.", summary_en:'Building a robust REST API.', summary_ar:'بناء واجهة برمجة REST قوية.', content_fr:'', content_en:'', content_ar:'', icon:'fa-server', link:'#', category:'Backend', read_time:14 },
-    { id:6, title_fr:"Intégration IA avec l'API Anthropic", title_en:'AI Integration with Anthropic API', title_ar:'تكامل الذكاء الاصطناعي مع Anthropic', summary_fr:'Intégrez Claude dans vos apps Django.', summary_en:'Integrate Claude into your Django apps.', summary_ar:'دمج Claude في تطبيقاتك.', content_fr:'', content_en:'', content_ar:'', icon:'fa-robot', link:'#', category:'AI', read_time:16 },
-  ]
+  articles: []
 }
 
 function LoadingScreen() {
   return (
     <div className="loading-screen">
       <div className="loading-hex" />
-      <p style={{ color: 'var(--gold)', fontFamily: 'var(--font-display)', fontSize: '0.9rem', letterSpacing: '0.2em' }}>
+      <p style={{ color: 'var(--gold)', fontFamily: 'var(--font-display)', fontSize: '0.9rem', letterSpacing: '0.2em', marginTop: '20px' }}>
         HPB PORTFOLIO
       </p>
     </div>
@@ -75,7 +74,7 @@ function LoadingScreen() {
 
 function ParticleField() {
   return (
-    <div className="particle-field" aria-hidden>
+    <div className="particle-field" aria-hidden="true">
       {[...Array(20)].map((_, i) => (
         <div key={i} className="particle" style={{
           width:  `${Math.random() * 3 + 1}px`,
@@ -89,29 +88,27 @@ function ParticleField() {
   )
 }
 
-// ─────────────────────────────────────────────────────────────
-// AppRoutes : composant ENFANT de BrowserRouter
-// → useLocation() peut être appelé ici sans erreur
-// ─────────────────────────────────────────────────────────────
 function AppRoutes({ profile, skills, cvData, articles }) {
   const location = useLocation()
-  const isArticleDetail =
-    location.pathname.startsWith('/articles/') &&
-    location.pathname.replace('/articles/', '').length > 0
+  
+  // Correction de la logique de détection du détail d'article
+  const isArticleDetail = location.pathname.startsWith('/articles/') && location.pathname !== '/articles'
 
   return (
     <>
       <ScrollToTop />
       <ParticleField />
-      <div className="hex-bg" aria-hidden />
+      <div className="hex-bg" aria-hidden="true" />
       <Navbar />
       <main>
         <Routes>
-          <Route path="/"             element={<Home    profile={profile} />} />
-          <Route path="/about"        element={<About   profile={profile} skills={skills} />} />
-          <Route path="/cv"           element={<CV      cvData={cvData} />} />
-          <Route path="/articles"     element={<Articles articles={articles} />} />
+          <Route path="/"               element={<Home    profile={profile} />} />
+          <Route path="/about"         element={<About   profile={profile} skills={skills} />} />
+          <Route path="/cv"            element={<CV      cvData={cvData} />} />
+          <Route path="/articles"      element={<Articles articles={articles} />} />
           <Route path="/articles/:id" element={<ArticlePage />} />
+          {/* Route de secours pour éviter les pages blanches */}
+          <Route path="*"             element={<Home    profile={profile} />} />
         </Routes>
         {!isArticleDetail && <Contact profile={profile} />}
       </main>
@@ -120,9 +117,6 @@ function AppRoutes({ profile, skills, cvData, articles }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────
-// AppContent : charge les données, puis rend BrowserRouter
-// ─────────────────────────────────────────────────────────────
 function AppContent() {
   const [data, setData]       = useState(null)
   const [loading, setLoading] = useState(true)
@@ -133,40 +127,39 @@ function AppContent() {
         const [pRes, sRes, cvRes, aRes] = await Promise.all([
           getProfile(), getSkills(), getCV(), getArticles()
         ])
+        
+        // Fusion avec FALLBACK pour garantir que chaque clé existe même si l'API renvoie null
         setData({
-          profile:  pRes.data,
-          skills:   sRes.data,
-          cvData:   cvRes.data,
-          articles: aRes.data,
+          profile:  pRes?.data || FALLBACK.profile,
+          skills:   sRes?.data || FALLBACK.skills,
+          cvData:   cvRes?.data || FALLBACK.cvData,
+          articles: aRes?.data || FALLBACK.articles,
         })
-      } catch {
+      } catch (error) {
+        console.error("API Error: Loading Fallback Data", error)
         setData(FALLBACK)
       } finally {
-        setTimeout(() => setLoading(false), 800)
+        // Petit délai pour l'élégance de l'animation
+        setTimeout(() => setLoading(false), 1000)
       }
     }
     load()
   }, [])
 
-  if (loading) return <LoadingScreen />
-
-  const { profile, skills, cvData, articles } = data || FALLBACK
+  if (loading || !data) return <LoadingScreen />
 
   return (
     <BrowserRouter>
       <AppRoutes
-        profile={profile}
-        skills={skills}
-        cvData={cvData}
-        articles={articles}
+        profile={data.profile}
+        skills={data.skills}
+        cvData={data.cvData}
+        articles={data.articles}
       />
     </BrowserRouter>
   )
 }
 
-// ─────────────────────────────────────────────────────────────
-// Point d'entrée
-// ─────────────────────────────────────────────────────────────
 export default function App() {
   return (
     <LangProvider>
