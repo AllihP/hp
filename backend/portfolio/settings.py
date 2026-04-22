@@ -53,6 +53,17 @@ else:
         }
     }
 
+    
+# Autoriser l'envoi de cookies/sessions via CORS
+    CORS_ALLOW_CREDENTIALS = True
+    
+    # Indispensable pour que Django accepte le jeton CSRF venant du frontend
+    CSRF_TRUSTED_ORIGINS = [
+        'https://hillaprince.onrender.com',
+    ]
+
+
+
 # ══════════════════════════════════════════════════════════════
 #  3. APPLICATIONS & MIDDLEWARE
 # ══════════════════════════════════════════════════════════════
