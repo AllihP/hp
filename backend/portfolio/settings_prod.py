@@ -14,8 +14,7 @@ from .settings import (
 SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me-in-production')
 DEBUG       = os.environ.get('DEBUG', 'False') == 'True'
 
-_hosts = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
-ALLOWED_HOSTS = [h.strip() for h in _hosts.split(',') if h.strip()]
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 
 INSTALLED_APPS = INSTALLED_APPS
 
