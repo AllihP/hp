@@ -36,7 +36,7 @@ DEBUG = not IS_PRODUCTION
 if IS_PRODUCTION:
     # Récupération du hostname Render pour éviter l'erreur DisallowedHost
     RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-    _hosts = os.environ.get('ALLOWED_HOSTS', 'hillaprince.onrender.com')
+    _hosts = os.environ.get('ALLOWED_HOSTS', 'hillaprince.com')
     ALLOWED_HOSTS = [h.strip() for h in _hosts.split(',') if h.strip()]
     if RENDER_EXTERNAL_HOSTNAME:
         ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
