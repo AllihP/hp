@@ -36,7 +36,7 @@ DEBUG = not IS_PRODUCTION
 if IS_PRODUCTION:
     # Récupération du hostname Render pour éviter l'erreur DisallowedHost
     RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-    _hosts = os.environ.get('ALLOWED_HOSTS', 'hillaprince.com')
+    _hosts = os.environ.get('ALLOWED_HOSTS', 'hillaprince.com,www.hillaprince.com')
     ALLOWED_HOSTS = [h.strip() for h in _hosts.split(',') if h.strip()]
     if RENDER_EXTERNAL_HOSTNAME:
         ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
@@ -127,7 +127,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE     = True   # expire à la fermeture
 SESSION_SAVE_EVERY_REQUEST          = False
 
 # CSRF — Correction pour permettre à React d'envoyer des messages
-CSRF_COOKIE_HTTPONLY = False  
+CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_USE_SESSIONS    = False
 
@@ -145,15 +145,24 @@ if IS_PRODUCTION:
     SECURE_CONTENT_TYPE_NOSNIFF        = True
     SECURE_REFERRER_POLICY             = 'strict-origin-when-cross-origin'
     X_FRAME_OPTIONS                    = 'DENY'
-    # Correction Erreur 403 : On autorise le domaine Render à envoyer des requêtes
-    CSRF_TRUSTED_ORIGINS = ['https://hillaprince.onrender.com']
+    # ✅ CORRECTION : domaine personnalisé ajouté
+    CSRF_TRUSTED_ORIGINS = [
+        'https://hillaprince.onrender.com',
+        'https://hillaprince.com',
+        'https://www.hillaprince.com',
+    ]
 
 # ══════════════════════════════════════════════════════════════
 #  CORS — Cross-Origin Resource Sharing
 # ══════════════════════════════════════════════════════════════
 if IS_PRODUCTION:
     CORS_ALLOW_ALL_ORIGINS = False
-    CORS_ALLOWED_ORIGINS   = ['https://hillaprince.onrender.com']
+    # ✅ CORRECTION : domaine personnalisé ajouté
+    CORS_ALLOWED_ORIGINS   = [
+        'https://hillaprince.onrender.com',
+        'https://hillaprince.com',
+        'https://www.hillaprince.com',
+    ]
     # Correction Erreur 403 : Autoriser l'envoi des cookies CSRF
     CORS_ALLOW_CREDENTIALS = True
 else:
