@@ -92,3 +92,8 @@ LOGGING = {
     'handlers': {'console': {'class': 'logging.StreamHandler'}},
     'root': {'handlers': ['console'], 'level': 'INFO'},
 }
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://hillaprince.com",
+    "https://www.hillaprince.com",
+]
