@@ -71,7 +71,7 @@ export default function About({ profile, skills }) {
         <div className={`about__content ${inView ? 'enter' : ''}`}>
           <h2 className="section-title">{t('about.title')}</h2>
           <div className="about__tag">
-            <span>Directeur Technique @ KICEKO CONSULTANT</span>
+            <span>Président du Groupe @ AllihTech</span>
           </div>
           <p className="about__bio">{bio}</p>
 
