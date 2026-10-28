@@ -1,0 +1,195 @@
+[
+  {
+    "model": "api.profile",
+    "pk": 1,
+    "fields": {
+      "name_fr": "Hilla Prince Bambé",
+      "name_en": "Hilla Prince Bambé",
+      "name_ar": "هيلا برانس بامبي",
+      "title_fr": "CEO du groupe AllihTech | Consultant Chef de Projet",
+      "title_en": "CEO of AllihTech Group | Project Management Consultant",
+      "title_ar": "الرئيس التنفيذي لمجموعة AllihTech | مستشار إدارة المشاريع",
+      "bio_fr": "CEO du groupe AllihTech | Consultant Chef de Projet chez KICEKO. Jeune ambitieux, je serai un excellent atout pour votre institution notamment dans la gestion de vos projets en digitalisation et infrastructures numériques. Spécialisé en gestion de projets IT, transformation digitale, systèmes d'information géographique (SIG/GIS) et architecture cloud, je construis des ponts entre la vision stratégique et l'exécution opérationnelle.",
+      "bio_en": "CEO of AllihTech Group | Project Management Consultant at KICEKO. Young and ambitious, I will be an excellent asset to your institution, particularly in managing your digitalization and digital infrastructure projects. Specialized in IT project management, digital transformation, GIS/SIG, and cloud architecture, I bridge the gap between strategic vision and operational execution.",
+      "bio_ar": "الرئيس التنفيذي لمجموعة AllihTech | مستشار إدارة المشاريع في KICEKO. شاب طموح، سأكون أصلاً ممتازاً لمؤسستكم، لا سيما في إدارة مشاريعكم في مجال الرقمنة والبنية التحتية الرقمية.",
+      "email": "hillaprincebambe@gmail.com",
+      "phone": "+235 60 92 87 48",
+      "linkedin": "",
+      "github": "",
+      "instagram": "https://www.instagram.com/prince_allih/",
+      "facebook": "https://www.facebook.com/prince.sirius/",
+      "twitter": ""
+    }
+  },
+  {
+    "model": "api.skill",
+    "pk": 1,
+    "fields": {"name_fr": "UI et UX Design", "name_en": "UI & UX Design", "name_ar": "تصميم واجهة المستخدم", "percentage": 95, "order": 1, "icon": "fa-pen-ruler"}
+  },
+  {
+    "model": "api.skill",
+    "pk": 2,
+    "fields": {"name_fr": "Conception Système", "name_en": "System Design", "name_ar": "تصميم الأنظمة", "percentage": 98, "order": 2, "icon": "fa-diagram-project"}
+  },
+  {
+    "model": "api.skill",
+    "pk": 3,
+    "fields": {"name_fr": "Méthodes Agiles", "name_en": "Agile Methods", "name_ar": "المنهجيات الرشيقة", "percentage": 70, "order": 3, "icon": "fa-arrows-spin"}
+  },
+  {
+    "model": "api.skill",
+    "pk": 4,
+    "fields": {"name_fr": "Développement Web", "name_en": "Web Development", "name_ar": "تطوير الويب", "percentage": 85, "order": 4, "icon": "fa-code"}
+  },
+  {
+    "model": "api.skill",
+    "pk": 5,
+    "fields": {"name_fr": "Infrastructure GIS", "name_en": "GIS Infrastructure", "name_ar": "البنية التحتية للمعلومات الجغرافية", "percentage": 90, "order": 5, "icon": "fa-map"}
+  },
+  {
+    "model": "api.skill",
+    "pk": 6,
+    "fields": {"name_fr": "DevOps & Cloud", "name_en": "DevOps & Cloud", "name_ar": "ديف أوبس والسحابة", "percentage": 75, "order": 6, "icon": "fa-cloud"}
+  },
+  {
+    "model": "api.education",
+    "pk": 1,
+    "fields": {
+      "title_fr": "Master en Technologies de l'Information",
+      "title_en": "Master in Information Technology",
+      "title_ar": "ماجستير في تكنولوجيا المعلومات",
+      "institution_fr": "SupMTI - Rabat, Maroc",
+      "institution_en": "SupMTI - Rabat, Morocco",
+      "institution_ar": "سوب إم تي آي - الرباط، المغرب",
+      "year": "2017-2022",
+      "description_fr": "Diplôme d'ingénieur en Technologies de l'Information avec double spécialisation en systèmes d'information géographique (SIG/GIS) et architecture logicielle. Formation approfondie en développement web full-stack, méthodes agiles (Scrum, Kanban), bases de données spatiales (PostGIS), cartographie numérique et déploiement cloud. Mémoire de fin d'études axé sur la digitalisation des services publics en Afrique subsaharienne.",
+      "description_en": "Engineering degree in Information Technology with dual specialization in Geographic Information Systems (GIS/SIG) and software architecture. Comprehensive training in full-stack web development, agile methodologies (Scrum, Kanban), spatial databases (PostGIS), digital mapping, and cloud deployment. Thesis focused on digitalization of public services in sub-Saharan Africa.",
+      "description_ar": "درجة هندسة في تكنولوجيا المعلومات مع تخصص مزدوج في نظم المعلومات الجغرافية وهندسة البرمجيات.",
+      "order": 1
+    }
+  },
+  {
+    "model": "api.education",
+    "pk": 2,
+    "fields": {
+      "title_fr": "Certificat en Maintenance PC",
+      "title_en": "Certificate in PC Maintenance",
+      "title_ar": "شهادة في صيانة الحاسوب",
+      "institution_fr": "Centre de Formation Informatique",
+      "institution_en": "IT Training Center",
+      "institution_ar": "مركز التدريب على تكنولوجيا المعلومات",
+      "year": "2016",
+      "description_fr": "Formation certifiante couvrant le diagnostic, la maintenance préventive et corrective du matériel informatique (PC, laptops, serveurs), la configuration des réseaux locaux et l'installation de systèmes d'exploitation Windows et Linux.",
+      "description_en": "Certified training covering diagnosis, preventive and corrective maintenance of IT hardware (desktops, laptops, servers), local network configuration, and installation of Windows and Linux operating systems.",
+      "description_ar": "تدريب معتمد يغطي تشخيص وصيانة أجهزة تكنولوجيا المعلومات وإعداد الشبكات المحلية وتثبيت أنظمة التشغيل.",
+      "order": 2
+    }
+  },
+  {
+    "model": "api.education",
+    "pk": 3,
+    "fields": {
+      "title_fr": "Baccalauréat Scientifique",
+      "title_en": "Scientific High School Diploma",
+      "title_ar": "البكالوريا العلمية",
+      "institution_fr": "Lycée National de N'Djamena",
+      "institution_en": "National High School of N'Djamena",
+      "institution_ar": "الثانوية الوطنية بنجامينا",
+      "year": "2014",
+      "description_fr": "Obtention du baccalauréat série scientifique avec mention. Solide fondation en mathématiques, physique et sciences naturelles, posant les bases d'un parcours d'ingénieur. Participation active aux concours scientifiques et premières initiations à la programmation et à l'informatique.",
+      "description_en": "Obtained the scientific baccalaureate with honors. Strong foundation in mathematics, physics, and natural sciences, laying the groundwork for an engineering career. Active participation in science competitions and first introductions to programming and computer science.",
+      "description_ar": "الحصول على شهادة البكالوريا العلمية بامتياز. أساس قوي في الرياضيات والفيزياء والعلوم الطبيعية.",
+      "order": 3
+    }
+  },
+  {
+    "model": "api.experience",
+    "pk": 3,
+    "fields": {
+      "title_fr": "CEO & Fondateur du Groupe",
+      "title_en": "Group CEO & Founder",
+      "title_ar": "الرئيس التنفيذي والمؤسس للمجموعة",
+      "company_fr": "AllihTech Group - N'Djamena, Tchad",
+      "company_en": "AllihTech Group - N'Djamena, Chad",
+      "company_ar": "مجموعة AllihTech - نجامينا، تشاد",
+      "period": "2022 - Présent",
+      "description_fr": "Fondation et direction générale du groupe AllihTech, entreprise tchadienne spécialisée en digitalisation, développement logiciel, infrastructure numérique et conseil IT pour les secteurs public et privé en Afrique centrale. Définition de la vision stratégique, management d'une équipe pluridisciplinaire (développement, GIS, DevOps, design), pilotage commercial et développement de partenariats stratégiques avec des institutions nationales et internationales pour accélérer la transformation numérique au Tchad.",
+      "description_en": "Founded and lead AllihTech Group, a Chadian company specializing in digitalization, software development, digital infrastructure, and IT consulting for public and private sectors across Central Africa. Defined strategic vision, managed a multidisciplinary team (development, GIS, DevOps, design), drove business development, and built strategic partnerships with national and international institutions to accelerate digital transformation in Chad.",
+      "description_ar": "تأسيس وقيادة مجموعة AllihTech، شركة تشادية متخصصة في الرقمنة وتطوير البرمجيات والبنية التحتية الرقمية.",
+      "order": 1
+    }
+  },
+  {
+    "model": "api.experience",
+    "pk": 1,
+    "fields": {
+      "title_fr": "Consultant Chef de Projet",
+      "title_en": "Project Management Consultant",
+      "title_ar": "مستشار إدارة المشاريع",
+      "company_fr": "KICEKO CONSULTANT - N'Djamena",
+      "company_en": "KICEKO CONSULTANT - N'Djamena",
+      "company_ar": "كيسيكو للاستشارات - نجامينا",
+      "period": "Janvier 2026 - Présent",
+      "description_fr": "Pilotage de missions de conseil en gestion de projets IT, digitalisation et développement d'infrastructures numériques pour des clients institutionnels et privés. Coordination de projets d'envergure avec des partenaires internationaux : Banque Mondiale, PNUD, ANLA, LWF, OXFAM, NIRAS. Définition des cadres PMO, rédaction de termes de référence (TDR), suivi budgétaire, reporting et conduite du changement organisationnel.",
+      "description_en": "Leading IT project management consulting missions covering digitalization and digital infrastructure for institutional and private clients. Coordinating large-scale projects with international partners: World Bank, UNDP, ANLA, LWF, OXFAM, NIRAS. Defining PMO frameworks, drafting terms of reference (ToR), budget tracking, reporting, and organizational change management.",
+      "description_ar": "قيادة مهام استشارية في إدارة مشاريع تكنولوجيا المعلومات والرقمنة لعملاء مؤسسيين وخاصين.",
+      "order": 2
+    }
+  },
+  {
+    "model": "api.experience",
+    "pk": 2,
+    "fields": {
+      "title_fr": "Ingénieur Systèmes d'Information",
+      "title_en": "Information Systems Engineer",
+      "title_ar": "مهندس نظم المعلومات",
+      "company_fr": "Programme National Santé Numérique (PNSN)",
+      "company_en": "National Digital Health Program (PNSN)",
+      "company_ar": "البرنامج الوطني للصحة الرقمية",
+      "period": "Février 2025 - Juillet 2025",
+      "description_fr": "Conception, déploiement et administration de plateformes numériques de santé pour plus de 500 utilisateurs répartis dans les régions du Tchad. Intégration des systèmes DHIS2, OpenMRS et tableaux de bord analytiques. Coordination technique avec les ministères de la Santé et de la Transition Numérique, ainsi qu'avec les partenaires internationaux (Banque Mondiale, PNUD, UNICEF). Formation des équipes locales et transfert de compétences.",
+      "description_en": "Design, deployment, and administration of digital health platforms for 500+ users across Chad's regions. Integration of DHIS2, OpenMRS systems, and analytical dashboards. Technical coordination with the Ministries of Health and Digital Transition, as well as international partners (World Bank, UNDP, UNICEF). Local team training and skills transfer.",
+      "description_ar": "تصميم ونشر وإدارة منصات الصحة الرقمية لأكثر من 500 مستخدم عبر مناطق تشاد.",
+      "order": 3
+    }
+  },
+  {
+    "model": "api.certification",
+    "pk": 1,
+    "fields": {
+      "title_fr": "AWS Cloud Practitioner",
+      "title_en": "AWS Cloud Practitioner",
+      "title_ar": "شهادة AWS السحابية",
+      "issuer": "Amazon Web Services",
+      "year": "2023",
+      "icon": "fa-aws",
+      "order": 1
+    }
+  },
+  {
+    "model": "api.certification",
+    "pk": 2,
+    "fields": {
+      "title_fr": "Professional Scrum Master",
+      "title_en": "Professional Scrum Master",
+      "title_ar": "سكروم ماستر المحترف",
+      "issuer": "Scrum.org",
+      "year": "2022",
+      "icon": "fa-certificate",
+      "order": 2
+    }
+  },
+  {
+    "model": "api.certification",
+    "pk": 3,
+    "fields": {
+      "title_fr": "GIS Professional",
+      "title_en": "GIS Professional",
+      "title_ar": "متخصص نظم المعلومات الجغرافية",
+      "issuer": "ESRI / QGIS Foundation",
+      "year": "2021",
+      "icon": "fa-map",
+      "order": 3
+    }
+  }
+]

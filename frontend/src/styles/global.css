@@ -1,0 +1,234 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Cinzel:wght@400;600;700;900&family=Cairo:wght@300;400;500;600;700;900&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');
+
+:root {
+  --gold: #f5c518;
+  --gold-dark: #c9a20e;
+  --gold-light: #ffd700;
+  --navy: #0a0f1e;
+  --navy-mid: #111827;
+  --navy-card: #141c2e;
+  --navy-light: #1e2d45;
+  --blue-accent: #1e3a8a;
+  --white: #ffffff;
+  --gray: #94a3b8;
+  --border: rgba(245, 197, 24, 0.3);
+  --font-display: 'Cinzel', serif;
+  --font-body: 'Rajdhani', sans-serif;
+  --font-arabic: 'Cairo', sans-serif;
+  --transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --shadow-gold: 0 0 30px rgba(245, 197, 24, 0.2);
+  --shadow-card: 0 20px 60px rgba(0,0,0,0.5);
+  --radius: 16px;
+  --navbar-h: 80px;
+}
+
+*, *::before, *::after {
+  margin: 0; padding: 0; box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--navy);
+  color: var(--white);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+[dir="rtl"] body,
+[lang="ar"] body,
+.lang-ar {
+  font-family: var(--font-arabic) !important;
+  letter-spacing: 0 !important;
+}
+
+[dir="rtl"] * {
+  font-family: var(--font-arabic);
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--navy); }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
+
+/* ── Hexagon BG Pattern ───────────────────────────── */
+.hex-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.hex-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(245,197,24,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 70%, rgba(30,58,138,0.15) 0%, transparent 60%);
+}
+
+/* ── Section base ────────────────────────────────── */
+.section {
+  min-height: 100vh;
+  padding: calc(var(--navbar-h) + 60px) 5vw 80px;
+  position: relative;
+  z-index: 1;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  color: var(--gold);
+  margin-bottom: 60px;
+  position: relative;
+  display: inline-block;
+  letter-spacing: 0.05em;
+}
+[dir="rtl"] .section-title { letter-spacing: 0; font-family: var(--font-arabic); }
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+  border-radius: 2px;
+}
+[dir="rtl"] .section-title::after { left: auto; right: 0; background: linear-gradient(270deg, var(--gold), transparent); }
+
+/* ── Gold Button ─────────────────────────────────── */
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+  color: var(--navy);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+[dir="rtl"] .btn-gold { letter-spacing: 0; font-family: var(--font-arabic); }
+.btn-gold::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.5s;
+}
+.btn-gold:hover::before { left: 100%; }
+.btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(245,197,24,0.4); }
+
+/* ── Card ────────────────────────────────────────── */
+.card {
+  background: var(--navy-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  transform: scaleX(0);
+  transition: transform 0.4s ease;
+}
+.card:hover::before { transform: scaleX(1); }
+.card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(245,197,24,0.6);
+  box-shadow: var(--shadow-gold);
+}
+
+/* ── Progress Bar ────────────────────────────────── */
+.progress-track {
+  background: rgba(255,255,255,0.08);
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-light));
+  border-radius: 4px;
+  position: relative;
+  transition: width 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 6px; height: 100%;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--gold-light);
+}
+
+/* ── Particles ───────────────────────────────────── */
+.particle-field {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: 0;
+  animation: float-particle linear infinite;
+}
+@keyframes float-particle {
+  0% { transform: translateY(100vh) scale(0); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.2; }
+  100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+}
+
+/* ── Loading ─────────────────────────────────────── */
+.loading-screen {
+  position: fixed; inset: 0;
+  background: var(--navy);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+  flex-direction: column; gap: 20px;
+}
+.loading-hex {
+  width: 60px; height: 60px;
+  background: var(--gold);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  animation: hex-spin 1.5s ease-in-out infinite;
+}
+@keyframes hex-spin {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(0.7); }
+}
+
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .section { padding: calc(var(--navbar-h) + 30px) 5vw 60px; }
+  .section-title { font-size: 1.8rem; margin-bottom: 40px; }
+}

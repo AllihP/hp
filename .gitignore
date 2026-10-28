@@ -1,0 +1,58 @@
+# ══════════════════════════════════════════════════════════════
+#  .gitignore — Portfolio HPB
+#  CRITIQUE : empêche les secrets d'aller sur GitHub
+# ══════════════════════════════════════════════════════════════
+
+# ── Secrets — JAMAIS dans Git ─────────────────────────────────
+.env
+.env.local
+.env.production
+.env.*.local
+*.key
+*.pem
+*.p12
+
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ── Django ────────────────────────────────────────────────────
+*.sqlite3
+db.sqlite3
+backend/staticfiles/
+backend/media/
+backend/private/
+backend/frontend_dist/
+backend/react_assets/
+
+# ── Environnements virtuels ───────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ── Node / React ──────────────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.env.local
+npm-debug.log*
+yarn-error.log
+
+# ── IDE ───────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Logs ──────────────────────────────────────────────────────
+*.log
+logs/

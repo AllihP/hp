@@ -1,0 +1,53 @@
+{
+  "nav": {
+    "home": "HOME",
+    "about": "ABOUT ME",
+    "cv": "RESUME",
+    "articles": "MY ARTICLES"
+  },
+  "hero": {
+    "greeting": "HELLO",
+    "iam": "I am",
+    "name": "Hilla Prince BAMBÉ",
+    "roles": ["Analyst & Designer", "Project Manager", "DevOps Engineer", "Full-Stack Developer", "GIS Specialist", "UI/UX Designer"]
+  },
+  "about": {
+    "title": "About Me",
+    "hire": "HIRE ME",
+    "skills_title": "My Skills"
+  },
+  "cv": {
+    "title": "Resume",
+    "education": "Education",
+    "experience": "Experience",
+    "certifications": "Certifications",
+    "download": "Download CV"
+  },
+  "articles": {
+    "title": "My Articles",
+    "read_more": "Read more",
+    "category": "Category"
+  },
+  "contact": {
+    "title": "Contact Me",
+    "name": "Full name",
+    "email": "Email address",
+    "subject": "Subject",
+    "message": "Message",
+    "send": "Send message",
+    "success": "Message sent successfully!",
+    "error": "Error while sending."
+  },
+  "footer": {
+    "contact": "Contact Me",
+    "links": "Quick Links",
+    "follow": "Follow Me",
+    "rights": "All rights reserved.",
+    "phone": "Phone"
+  },
+  "lang": {
+    "fr": "FR",
+    "en": "EN",
+    "ar": "AR"
+  }
+}
