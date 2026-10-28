@@ -109,7 +109,7 @@ npm run dev
 | Frontend React | http://localhost:5173/ |
 | API Django | http://localhost:8000/api/ |
 | Admin Django | http://localhost:8000/admin/ |
-| **Admin login** | identifiants choisis à la création du superuser (`python manage.py createsuperuser`) |
+| **Admin login** | `admin` / `admin123` |
 
 ---
 

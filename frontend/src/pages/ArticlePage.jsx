@@ -2,23 +2,9 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useLang } from '../context/LangContext'
 import axios from 'axios'
-import DOMPurify from 'dompurify'
 import './ArticlePage.css'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-
-/* ── Nettoyage du HTML des articles (anti-XSS) ────────────────
-   Retire scripts, gestionnaires d'événements (onerror…), liens
-   javascript:, iframes… Garde la mise en forme CKEditor. */
-DOMPurify.addHook('afterSanitizeAttributes', node => {
-  if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
-    node.setAttribute('rel', 'noopener noreferrer')
-  }
-})
-const safeHtml = html => DOMPurify.sanitize(html, {
-  ADD_ATTR: ['target'],
-  FORBID_TAGS: ['style', 'form', 'input', 'button', 'iframe', 'object', 'embed'],
-})
 
 /* ── Helpers ─────────────────────────────────────────────── */
 const g = (o, l, f) => !o ? '' : o[`${f}_${l}`] || o[`${f}_fr`] || ''
@@ -328,7 +314,7 @@ export default function ArticlePage() {
                     {sTitle}
                   </h2>
                   <div className="ar-sec-body"
-                    dangerouslySetInnerHTML={{ __html: safeHtml(html) ||
+                    dangerouslySetInnerHTML={{ __html: html ||
                       '<p class="ar-empty">Contenu à rédiger dans l\'admin Django…</p>' }} />
                 </div>
               )
@@ -338,7 +324,7 @@ export default function ArticlePage() {
                 <p>{T("Aucune section rédigée. Remplissez « Sections de l'article » dans l'admin.",
                        "No sections yet. Fill in 'content_sections' JSON in Django admin.",
                        'لا توجد أقسام بعد.')}</p>
-                <a href={`${API.replace(/\/api\/?$/, '') || ''}/admin/api/article/${art.id}/change/`}
+                <a href={`http://localhost:8000/admin/api/article/${art.id}/change/`}
                   target="_blank" rel="noreferrer" className="btn-gold">
                   <i className="fas fa-edit" /> {T("Rédiger dans l'admin","Edit in admin","تحرير")}
                 </a>

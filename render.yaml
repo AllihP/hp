@@ -29,15 +29,6 @@ services:
       - key: DEBUG
         value: "False"
 
-      # URL secrète de l'admin — à définir dans le dashboard Render
-      # (sync: false = jamais écrite dans le dépôt Git)
-      - key: ADMIN_URL
-        sync: false
-
-      # Proxys devant Django (Render = 1) — vraie IP du visiteur
-      - key: TRUSTED_PROXY_COUNT
-        value: "1"
-
       - fromDatabase:
           name: portfolio-hpb-db
           property: connectionString
@@ -45,7 +36,6 @@ services:
     # Commande de migration avant démarrage
     preDeployCommand: >
       python manage.py migrate --noinput &&
-      python manage.py createcachetable &&
       python manage.py loaddata api/fixtures/initial_data.json &&
       python manage.py import_article --create
 

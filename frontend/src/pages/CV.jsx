@@ -112,20 +112,7 @@ function ModalDownload({ onClose, lang }) {
       setTimeout(() => { onClose(); setStatus('idle') }, 2000)
 
     } catch (err) {
-      let msg = 'Une erreur est survenue.'
-      if (err.response?.data) {
-        if (err.response.data instanceof Blob) {
-          try {
-            const text = await err.response.data.text()
-            const json = JSON.parse(text)
-            msg = json.error || json.message || msg
-          } catch {
-            // garder le message par défaut
-          }
-        } else if (err.response.data.error) {
-          msg = err.response.data.error
-        }
-      }
+      const msg = err.response?.data?.error || 'Une erreur est survenue.'
       setErrMsg(msg)
       setStatus('error')
     }

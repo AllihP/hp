@@ -58,7 +58,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'django_ckeditor_5',
-    'axes',                 # blocage après échecs de connexion admin
     'api',
 ]
 
@@ -73,7 +72,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',  # anti-clickjacking
-    'axes.middleware.AxesMiddleware',                     # dernier — anti brute-force
 ]
 
 ROOT_URLCONF     = 'portfolio.urls'
@@ -125,22 +123,6 @@ AUTH_PASSWORD_VALIDATORS = [
 #  AUTHENTIFICATION & ACCÈS ADMIN
 # ══════════════════════════════════════════════════════════════
 
-# URL de l'admin — définissez ADMIN_URL (ex. "gestion-x7k2/") sur Render
-# pour ne pas exposer l'admin à l'adresse /admin/ que tous les robots testent
-ADMIN_URL = (os.environ.get('ADMIN_URL', '').strip('/') or 'admin') + '/'
-
-# Anti brute-force (django-axes) : 5 échecs → blocage 30 min
-AUTHENTICATION_BACKENDS = [
-    'axes.backends.AxesStandaloneBackend',   # en premier
-    'django.contrib.auth.backends.ModelBackend',
-]
-AXES_FAILURE_LIMIT       = 5
-AXES_COOLOFF_TIME        = 0.5            # heures
-AXES_RESET_ON_SUCCESS    = True
-# Blocage par IP, et par nom d'utilisateur (freine les attaques multi-IP)
-AXES_LOCKOUT_PARAMETERS  = ['ip_address', 'username']
-AXES_CLIENT_IP_CALLABLE  = 'api.client_ip.get_client_ip'
-
 # Sessions — expiration courte
 SESSION_COOKIE_HTTPONLY             = True   # inaccessible au JS
 SESSION_COOKIE_SAMESITE             = 'Lax'
@@ -177,10 +159,7 @@ if IS_PRODUCTION:
 
     # CSRF trusted origins : calculé depuis ALLOWED_HOSTS + CORS origins
     _cors_env = os.environ.get('CORS_ALLOWED_ORIGINS', '')
-    _cors_list = [
-        o.strip() if o.strip().startswith(('http://', 'https://')) else f"https://{o.strip()}"
-        for o in _cors_env.split(',') if o.strip()
-    ]
+    _cors_list = [o.strip() for o in _cors_env.split(',') if o.strip()]
     CSRF_TRUSTED_ORIGINS = list({
         f"https://{h}" for h in ALLOWED_HOSTS
         if h not in ('localhost', '127.0.0.1', '0.0.0.0')
@@ -192,8 +171,11 @@ if IS_PRODUCTION:
 #  CORS — Cross-Origin Resource Sharing
 # ══════════════════════════════════════════════════════════════
 if IS_PRODUCTION:
+    _cors_env = os.environ.get('CORS_ALLOWED_ORIGINS', '')
     CORS_ALLOW_ALL_ORIGINS = False
-    CORS_ALLOWED_ORIGINS   = list(set(_cors_list) | {
+    CORS_ALLOWED_ORIGINS   = list({
+        o.strip() for o in _cors_env.split(',') if o.strip()
+    } | {
         f"https://{h}" for h in ALLOWED_HOSTS
         if h not in ('localhost', '127.0.0.1', '0.0.0.0')
     } | {
@@ -230,30 +212,7 @@ REST_FRAMEWORK = {
         'contact': '5/hour',
         'cv_download': '10/hour',
     },
-    # Nombre de proxys devant Django (Render = 1). Sans ce réglage, DRF
-    # utilise X-Forwarded-For tel quel, que le client peut falsifier pour
-    # contourner les limites. À ajuster via TRUSTED_PROXY_COUNT si besoin.
-    'NUM_PROXIES': int(os.environ.get('TRUSTED_PROXY_COUNT', '1')),
 }
-
-# ══════════════════════════════════════════════════════════════
-#  CACHE — stocke les compteurs de limitation de débit
-#  En prod : table en base, partagée entre les workers gunicorn
-#  et conservée après redémarrage (python manage.py createcachetable).
-# ══════════════════════════════════════════════════════════════
-if IS_PRODUCTION:
-    CACHES = {'default': {
-        'BACKEND':  'django.core.cache.backends.db.DatabaseCache',
-        'LOCATION': 'django_cache',
-    }}
-else:
-    CACHES = {'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-    }}
-
-# Échecs de code CV tolérés par heure, toutes IP confondues
-# (freine une attaque qui changerait d'IP à chaque essai)
-CV_MAX_GLOBAL_FAILURES_PER_HOUR = 50
 
 # ══════════════════════════════════════════════════════════════
 #  FICHIERS STATIQUES
@@ -268,9 +227,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Fichiers privés (CV protégé) — jamais servis directement
-PRIVATE_MEDIA_ROOT = BASE_DIR / 'private'
-
 # ══════════════════════════════════════════════════════════════
 #  INTERNATIONALISATION
 # ══════════════════════════════════════════════════════════════
@@ -284,9 +240,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #  CKEDITOR 5
 # ══════════════════════════════════════════════════════════════
 CKEDITOR_5_FILE_STORAGE      = 'api.storage.ArticleImageStorage'
-# Pas de SVG : un SVG peut contenir du JavaScript exécuté sur le domaine
-CKEDITOR_5_UPLOAD_FILE_TYPES = ['jpeg', 'jpg', 'png', 'gif', 'webp']
-CKEDITOR_5_FILE_UPLOAD_PERMISSION = 'staff'  # explicite : staff uniquement
+CKEDITOR_5_UPLOAD_FILE_TYPES = ['jpeg', 'jpg', 'png', 'gif', 'webp', 'svg']
 CKEDITOR_5_MAX_FILE_SIZE     = 10
 
 CKEDITOR_5_CONFIGS = {

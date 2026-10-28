@@ -3,12 +3,9 @@ from rest_framework.throttling import AnonRateThrottle
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import FileResponse
-from django.db.models import Q, F
+from django.db.models import Q
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from django.core.cache import cache
-from django.conf import settings
-import hmac
 import re
 
 from .models import (Profile, Skill, Education, Experience, Certification,
@@ -28,9 +25,6 @@ class ContactThrottle(AnonRateThrottle):
 
 class CVDownloadThrottle(AnonRateThrottle):
     scope = 'cv_download'  # 10/hour défini dans settings.py
-
-
-_CV_FAILURES_KEY = 'cv_download_global_failures'
 
 
 def _clean(text, max_length=500):
@@ -58,7 +52,7 @@ def get_profile(request):
     profile = Profile.objects.first()
     if not profile:
         return Response({'error': 'Profile not found'}, status=404)
-    return Response(ProfileSerializer(profile, context={'request': request}).data)
+    return Response(ProfileSerializer(profile).data)
 
 
 @api_view(['GET'])
@@ -101,7 +95,7 @@ def get_article_detail(request, pk):
         article = Article.objects.get(pk=pk, status='published')
     except Article.DoesNotExist:
         return Response({'error': 'Article introuvable.'}, status=404)
-    Article.objects.filter(pk=pk).update(view_count=F('view_count') + 1)
+    Article.objects.filter(pk=pk).update(view_count=article.view_count + 1)
     return Response(
         ArticleDetailSerializer(article, context={'request': request}).data
     )
@@ -117,7 +111,7 @@ def get_article_by_doi(request):
         article = Article.objects.get(doi=doi, status='published')
     except Article.DoesNotExist:
         return Response({'error': 'Article introuvable.'}, status=404)
-    Article.objects.filter(pk=article.pk).update(view_count=F('view_count') + 1)
+    Article.objects.filter(pk=article.pk).update(view_count=article.view_count + 1)
     return Response(
         ArticleDetailSerializer(article, context={'request': request}).data
     )
@@ -200,25 +194,9 @@ def download_cv(request):
     if not cv:
         return Response({'error': 'CV non disponible pour le moment.'}, status=404)
 
-    # Plafond global d'échecs : bloque une attaque répartie sur de nombreuses IP
-    max_failures = getattr(settings, 'CV_MAX_GLOBAL_FAILURES_PER_HOUR', 50)
-    if cache.get(_CV_FAILURES_KEY, 0) >= max_failures:
-        return Response(
-            {'error': 'Trop de tentatives. Réessayez plus tard.'}, status=429
-        )
-
-    # Comparaison à temps constant (pas d'indice via le temps de réponse)
-    attendu = cv.code.strip().lower().encode()
-    if not hmac.compare_digest(code_saisi.lower().encode(), attendu):
-        try:
-            cache.incr(_CV_FAILURES_KEY)
-        except ValueError:
-            cache.set(_CV_FAILURES_KEY, 1, timeout=3600)
+    if code_saisi.lower() != cv.code.strip().lower():
         # Message générique — ne révèle pas si le code est proche ou non
         return Response({'error': 'Code incorrect.'}, status=403)
-
-    if not cv.fichier:
-        return Response({'error': 'Fichier introuvable sur le serveur.'}, status=404)
 
     try:
         fichier = cv.fichier.open('rb')
@@ -228,7 +206,5 @@ def download_cv(request):
             filename=cv.nom_fichier,
             content_type='application/pdf'
         )
-    except (FileNotFoundError, ValueError):
-        return Response({'error': 'Fichier introuvable sur le serveur.'}, status=404)
     except Exception:
-        return Response({'error': 'Erreur lors de la lecture du fichier.'}, status=500)
+        return Response({'error': 'Fichier introuvable.'}, status=500)

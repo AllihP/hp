@@ -22,7 +22,6 @@ env/
 db.sqlite3
 staticfiles/
 media/
-private/
 
 # ── Tests ─────────────────────────────────────────────────────
 .pytest_cache/

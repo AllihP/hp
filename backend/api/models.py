@@ -2,8 +2,6 @@ from django.db import models
 from django_ckeditor_5.fields import CKEditor5Field
 import uuid
 
-from .storage import private_storage
-
 
 # ══════════════════════════════════════════════════════════════════
 #  MODÈLES EXISTANTS (inchangés)
@@ -111,10 +109,7 @@ class Certification(models.Model):
 
 
 class CVProtege(models.Model):
-    # Stockage privé : le CV n'est jamais servi par /media/, uniquement
-    # par /api/cv/download/ après vérification du code
-    fichier    = models.FileField(upload_to='cv/', storage=private_storage,
-                                  verbose_name="Fichier CV (PDF)")
+    fichier    = models.FileField(upload_to='cv/', verbose_name="Fichier CV (PDF)")
     code       = models.CharField(max_length=50, verbose_name="Code d'accès")
     actif      = models.BooleanField(default=True, verbose_name="Actif")
     nom_fichier= models.CharField(max_length=100, default="CV_Hilla_Prince_Bambe.pdf", verbose_name="Nom téléchargé")

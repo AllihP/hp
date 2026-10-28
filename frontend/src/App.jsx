@@ -179,14 +179,14 @@ function AppContent() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [pRes, sRes, cvRes, aRes] = await Promise.allSettled([
+        const [pRes, sRes, cvRes, aRes] = await Promise.all([
           getProfile(), getSkills(), getCV(), getArticles()
         ])
         setData({
-          profile:  pRes.status === 'fulfilled' ? pRes.value.data : FALLBACK.profile,
-          skills:   sRes.status === 'fulfilled' ? sRes.value.data : FALLBACK.skills,
-          cvData:   cvRes.status === 'fulfilled' ? cvRes.value.data : FALLBACK.cvData,
-          articles: aRes.status === 'fulfilled' ? aRes.value.data : FALLBACK.articles,
+          profile:  pRes.data,
+          skills:   sRes.data,
+          cvData:   cvRes.data,
+          articles: aRes.data,
         })
       } catch {
         setData(FALLBACK)

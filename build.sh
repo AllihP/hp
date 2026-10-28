@@ -6,10 +6,10 @@ cd frontend
 npm install
 chmod -R +x node_modules/.bin/ 2>/dev/null || true
 # base=/static/ dans vite.config.js → assets sous /static/assets/...
-VITE_API_URL="${VITE_API_URL:-/api}" node node_modules/vite/bin/vite.js build --mode production
+VITE_API_URL=/api node node_modules/vite/bin/vite.js build --mode production
 echo "  dist/ :"
 ls -la dist/
-ls -la dist/assets/ 2>/dev/null | head -8 || true
+ls -la dist/assets/ | head -8
 cd ..
 
 echo "━━━ ÉTAPE 2 — Copie vers backend ━━━"
@@ -21,10 +21,10 @@ cp frontend/dist/index.html backend/frontend_dist/index.html
 # assets React → react_assets (ajouté dans STATICFILES_DIRS)
 rm -rf backend/react_assets
 mkdir -p backend/react_assets
-cp -r frontend/dist/assets backend/react_assets/
+cp -r frontend/dist/assets backend/react_assets/assets
 echo "  index.html copié dans frontend_dist/"
 echo "  assets/ copié dans react_assets/ :"
-ls backend/react_assets/assets/ 2>/dev/null | head -5 || true
+ls backend/react_assets/assets/ | head -5
 
 echo "━━━ ÉTAPE 3 — Dépendances Python ━━━"
 cd backend
@@ -37,12 +37,10 @@ echo "  staticfiles/assets/ :"
 ls staticfiles/assets/ 2>/dev/null | head -5 || echo "  (vide)"
 
 echo "━━━ ÉTAPE 5 — Migrations ━━━"
-python manage.py migrate --noinput
-python manage.py createcachetable 2>/dev/null || true
+python manage.py migrate
 
 echo "━━━ ÉTAPE 5b — Chargement des fixtures (profil, CV, compétences) ━━━"
-# Charge les fixtures uniquement si la base est vide pour éviter d'écraser les modifications
-python manage.py shell -c "from api.models import Profile; exit(0 if Profile.objects.exists() else 1)" 2>/dev/null || python manage.py loaddata api/fixtures/initial_data.json
+python manage.py loaddata api/fixtures/initial_data.json
 
 echo "━━━ ÉTAPE 6 — Import article + Superuser ━━━"
 python manage.py import_article --create

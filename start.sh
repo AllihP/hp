@@ -16,7 +16,7 @@ npm run dev &
 FRONTEND_PID=$!
 echo "✅ Frontend React: http://localhost:5173/"
 echo ""
-echo "Admin: http://localhost:8000/admin/ (ou /\$ADMIN_URL si défini)"
+echo "Admin: http://localhost:8000/admin/ (admin / admin123)"
 echo ""
 echo "Appuyez sur Ctrl+C pour arrêter les serveurs..."
 

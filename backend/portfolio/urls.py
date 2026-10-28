@@ -8,8 +8,6 @@ from django.http import HttpResponse, JsonResponse
 
 def serve_spa(request):
     """Sert index.html pour toutes les routes React (SPA)."""
-    if request.path.startswith('/api/'):
-        return JsonResponse({'error': 'Endpoint API introuvable.'}, status=404)
     index_path = os.path.join(
         settings.BASE_DIR, 'frontend_dist', 'index.html'
     )
@@ -22,22 +20,22 @@ def serve_spa(request):
         return JsonResponse({
             'status': 'error',
             'message': 'Frontend non construit.',
+            'api': '/api/',
+            'admin': '/admin/',
         }, status=503)
 
 
 urlpatterns = [
-    path(settings.ADMIN_URL, admin.site.urls),   # URL configurable (ADMIN_URL)
+    path('admin/',     admin.site.urls),
     path('api/',       include('api.urls')),
     path('ckeditor5/', include('django_ckeditor_5.urls')),
+
+    # /static/ est géré par WhiteNoise (middleware) — jamais atteint ici
+    # Tout le reste → React SPA
+    re_path(r'^.*$', serve_spa),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(
         settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
     )
-
-# /static/ est géré par WhiteNoise (middleware) — jamais atteint ici
-# Tout le reste → React SPA (doit impérativement être en fin de liste)
-urlpatterns += [
-    re_path(r'^.*$', serve_spa),
-]

@@ -32,20 +32,19 @@ source venv/bin/activate
 pip install -r requirements.txt -q
 
 echo -e "${YELLOW}[2/4] Migration de la base de données...${NC}"
+python manage.py makemigrations api --no-input
 python manage.py migrate --no-input
 
 echo -e "${YELLOW}[3/4] Chargement des données initiales...${NC}"
-python manage.py shell -c "from api.models import Profile; exit(0 if Profile.objects.exists() else 1)" 2>/dev/null || python manage.py loaddata api/fixtures/initial_data.json
+python manage.py loaddata api/fixtures/initial_data.json 2>/dev/null || echo "Données déjà présentes."
 
 # Create superuser if not exists
-# Superuser : jamais de mot de passe par défaut.
-# Si DJANGO_SUPERUSER_USERNAME / DJANGO_SUPERUSER_PASSWORD sont définis → création auto,
-# sinon Django demande les identifiants de façon interactive.
-if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ]; then
-    python manage.py create_default_superuser
-else
-    python manage.py createsuperuser
-fi
+echo "from django.contrib.auth.models import User
+if not User.objects.filter(username='admin').exists():
+    User.objects.create_superuser('admin', 'admin@portfolio.com', 'admin123')
+    print('Superuser créé: admin / admin123')
+else:
+    print('Superuser déjà existant.')" | python manage.py shell
 
 cd ..
 
@@ -67,7 +66,7 @@ echo -e "${BLUE}Démarrer le frontend React (dans un autre terminal):${NC}"
 echo "  cd frontend && npm run dev"
 echo ""
 echo -e "${BLUE}Admin Django:${NC} http://localhost:8000/admin/"
-echo -e "${BLUE}  Login:${NC} les identifiants saisis à la création du superuser"
+echo -e "${BLUE}  Login:${NC} admin / admin123"
 echo ""
 echo -e "${BLUE}API REST:${NC} http://localhost:8000/api/"
 echo -e "${BLUE}Frontend:${NC} http://localhost:5173/"
