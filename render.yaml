@@ -36,7 +36,8 @@ services:
     # Commande de migration avant démarrage
     preDeployCommand: >
       python manage.py migrate --noinput &&
-      python manage.py loaddata api/fixtures/initial_data.json &&
+      python manage.py createcachetable &&
+      (python manage.py shell -c "from api.models import Profile; exit(0 if Profile.objects.exists() else 1)" 2>/dev/null || python manage.py loaddata api/fixtures/initial_data.json) &&
       python manage.py import_article --create
 
 
